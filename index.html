@@ -1,0 +1,4094 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLOUDHILL FARM｜雲丘小農場 — A Little Farm, A Little Happiness.</title>
+  <!-- Google Fonts: Rounded English Display & Traditional Chinese -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            meadow: '#A9C99B',
+            sprout: '#D5E5BD',
+            cream: '#F4E9D1',
+            creamLight: '#FAF5E8',
+            sky: '#9DC7D8',
+            wood: '#DDAE83',
+            woodDark: '#6B523E',
+            softOrange: '#EDC5A8',
+            softPink: '#E9D9DC',
+            lavender: '#B7B2D4',
+            forest: '#8C9F85',
+            ink: '#4A3E35',
+            inkLight: '#75665A',
+          },
+          fontFamily: {
+            display: ['Fredoka', 'Noto Sans TC', 'sans-serif'],
+            sans: ['Noto Sans TC', 'sans-serif'],
+          },
+          boxShadow: {
+            toy: '0 10px 25px -5px rgba(74, 62, 53, 0.10), 0 4px 0 rgba(140, 159, 133, 0.28)',
+            toyHover: '0 14px 30px -5px rgba(74, 62, 53, 0.15), 0 6px 0 rgba(140, 159, 133, 0.35)',
+            soft: '0 8px 30px rgba(74, 62, 53, 0.08)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --color-meadow: #A9C99B;
+      --color-sprout: #D5E5BD;
+      --color-cream: #F4E9D1;
+      --color-cream-light: #FAF5E8;
+      --color-sky: #9DC7D8;
+      --color-wood: #DDAE83;
+      --color-soft-orange: #EDC5A8;
+      --color-soft-pink: #E9D9DC;
+      --color-lavender: #B7B2D4;
+      --color-forest: #8C9F85;
+      --color-ink: #4A3E35;
+    }
+
+    body {
+      background-color: var(--color-cream);
+      color: var(--color-ink);
+      font-family: 'Noto Sans TC', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Gentle Low Poly Paper Texture Overlay */
+    .paper-bg {
+      background-color: #FAF5E8;
+      background-image: radial-gradient(rgba(169, 201, 155, 0.22) 1px, transparent 1px),
+                        radial-gradient(rgba(221, 174, 131, 0.16) 1px, #FAF5E8 1px);
+      background-size: 32px 32px;
+      background-position: 0 0, 16px 16px;
+    }
+
+    /* Motion Design System: Reveal, Float, Bounce, Stagger */
+    .reveal-item {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal-item.is-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+    .animate-float {
+      animation: gentleFloat 4.2s ease-in-out infinite;
+    }
+
+    @keyframes softHop {
+      0%, 100% { transform: translateY(0) scale(1, 1); }
+      30% { transform: translateY(-10px) scale(0.96, 1.05); }
+      60% { transform: translateY(0) scale(1.04, 0.96); }
+    }
+    .animate-hop {
+      animation: softHop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes driftCloud {
+      0% { transform: translateX(-12px); }
+      50% { transform: translateX(12px); }
+      100% { transform: translateX(-12px); }
+    }
+    .animate-cloud {
+      animation: driftCloud 9s ease-in-out infinite;
+    }
+
+    /* Tactile Toy Button */
+    .btn-toy {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.25s ease,
+                  background-color 0.25s ease;
+    }
+    .btn-toy:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+    .btn-toy:active {
+      transform: translateY(2px) scale(0.98);
+    }
+
+    /* Canvas responsive sizing */
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F4E9D1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #A9C99B;
+      border-radius: 9999px;
+      border: 2px solid #F4E9D1;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8C9F85;
+    }
+
+    /* Respect Reduced Motion Preferences */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-item {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      .animate-float, .animate-cloud, .animate-hop {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-meadow/40 selection:text-ink">
+
+  <!-- =========================================================
+       STICKY NAVIGATION BAR
+       ========================================================= -->
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-creamLight/85 backdrop-blur-md border-b border-wood/25">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      <!-- Brand Logo -->
+      <a href="#home" class="flex items-center gap-2.5 group focus:outline-none">
+        <div class="w-10 h-10 rounded-2xl bg-meadow flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <!-- Custom Low Poly Hill & Sprout SVG -->
+          <svg class="w-6 h-6" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="4,28 15,13 26,28" fill="#FAF5E8"/>
+            <polygon points="15,13 26,28 32,28 22,16" fill="#D5E5BD"/>
+            <polygon points="15,13 18,7 20,11 16,12" fill="#6B523E"/>
+            <polygon points="18,7 24,5 21,10" fill="#8C9F85"/>
+            <circle cx="27" cy="9" r="3" fill="#EDC5A8"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-display font-bold text-base sm:text-lg tracking-wide text-ink block leading-none">CLOUDHILL FARM</span>
+          <span class="text-xs font-medium text-forest tracking-widest">雲丘小農場</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden md:flex items-center gap-1 lg:gap-2 bg-cream/80 px-3 py-1.5 rounded-full border border-wood/25">
+        <a href="#home" data-nav="home" class="nav-link px-3.5 py-1.5 rounded-full text-xs font-display font-semibold tracking-wider text-ink hover:bg-meadow/40 transition-colors">HOME</a>
+        <a href="#world" data-nav="world" class="nav-link px-3.5 py-1.5 rounded-full text-xs font-display font-semibold tracking-wider text-ink hover:bg-meadow/40 transition-colors">WORLD</a>
+        <a href="#friends" data-nav="friends" class="nav-link px-3.5 py-1.5 rounded-full text-xs font-display font-semibold tracking-wider text-ink hover:bg-meadow/40 transition-colors">FRIENDS</a>
+        <a href="#story" data-nav="story" class="nav-link px-3.5 py-1.5 rounded-full text-xs font-display font-semibold tracking-wider text-ink hover:bg-meadow/40 transition-colors">STORY</a>
+        <a href="#explore" data-nav="explore" class="nav-link px-3.5 py-1.5 rounded-full text-xs font-display font-semibold tracking-wider bg-meadow text-ink shadow-sm hover:bg-forest hover:text-white transition-colors">EXPLORE</a>
+      </nav>
+
+      <!-- Right Controls: Sound Toggle, Diary Counter, Back to Top, Mobile Menu -->
+      <div class="flex items-center gap-2">
+        <button id="sound-toggle-btn" type="button" aria-label="切換農場背景音效"
+          class="btn-toy flex items-center gap-1.5 px-3 py-2 rounded-full bg-cream border border-wood/35 text-xs font-medium text-ink shadow-sm hover:bg-sprout/60">
+          <span id="sound-icon" class="text-sm">🔇</span>
+          <span id="sound-label" class="hidden sm:inline">音效：關</span>
+        </button>
+
+        <a href="#explore" onclick="switchExploreTab('diary')"
+          class="btn-toy flex items-center gap-1.5 px-3 py-2 rounded-full bg-softPink/70 border border-wood/30 text-xs font-medium text-ink shadow-sm hover:bg-softPink">
+          <span>📖</span>
+          <span class="hidden sm:inline">日記</span>
+          <span id="nav-diary-count" class="font-display font-bold text-woodDark">2/8</span>
+        </a>
+
+        <button id="scroll-top-btn" type="button" aria-label="回到頂部"
+          class="btn-toy hidden sm:flex w-9 h-9 rounded-full bg-sky/40 border border-sky text-ink items-center justify-center text-sm font-bold shadow-sm hover:bg-sky/70">
+          ↑
+        </button>
+
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-btn" type="button" aria-label="開啟選單"
+          class="md:hidden w-10 h-10 rounded-2xl bg-sprout/70 border border-wood/30 flex items-center justify-center text-ink">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden bg-creamLight/95 backdrop-blur-md border-b border-wood/30 px-4 pt-2 pb-5 space-y-2">
+      <a href="#home" class="mobile-nav-link block px-4 py-3 rounded-2xl font-display font-semibold text-sm hover:bg-sprout/50">HOME｜首頁</a>
+      <a href="#world" class="mobile-nav-link block px-4 py-3 rounded-2xl font-display font-semibold text-sm hover:bg-sprout/50">WORLD｜雲丘世界觀</a>
+      <a href="#friends" class="mobile-nav-link block px-4 py-3 rounded-2xl font-display font-semibold text-sm hover:bg-sprout/50">FRIENDS｜認識動物夥伴</a>
+      <a href="#story" class="mobile-nav-link block px-4 py-3 rounded-2xl font-display font-semibold text-sm hover:bg-sprout/50">STORY｜六幕日常物語</a>
+      <a href="#explore" class="mobile-nav-link block px-4 py-3 rounded-2xl font-display font-semibold text-sm bg-meadow text-ink">EXPLORE｜3D 互動農場體驗</a>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       01｜HERO SECTION — FULLSCREEN LOW POLY 3D FARM DIORAMA
+       ========================================================= -->
+  <section id="home" class="relative w-full min-h-screen pt-16 sm:pt-20 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#B9DCEB] via-[#DCEEF3] to-[#D5E5BD]">
+    <!-- Fullscreen 3D Canvas Container -->
+    <div id="hero-canvas-container" class="absolute inset-0 z-0">
+      <canvas id="hero-3d-canvas"></canvas>
+    </div>
+
+    <!-- Soft Atmospheric Vignette for Crisp Typography Legibility -->
+    <div class="pointer-events-none absolute inset-0 z-10 bg-gradient-to-b from-[#FAF5E8]/75 via-transparent to-[#FAF5E8]/85"></div>
+
+    <!-- Top-Center Hero Title & Tagline -->
+    <div class="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-14 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-creamLight/90 backdrop-blur-sm border border-wood/35 shadow-sm mb-4 animate-float">
+        <span class="w-2.5 h-2.5 rounded-full bg-meadow"></span>
+        <span class="font-display font-semibold text-xs sm:text-sm tracking-widest text-woodDark">A LITTLE FARM, A LITTLE HAPPINESS.</span>
+      </div>
+
+      <h1 class="font-display font-bold text-4xl sm:text-6xl md:text-7xl text-ink tracking-tight drop-shadow-sm">
+        CLOUDHILL FARM
+      </h1>
+      <p class="mt-2 text-2xl sm:text-3xl font-bold text-woodDark tracking-wider">
+        雲丘小農場
+      </p>
+      <p class="mt-3 sm:mt-4 text-sm sm:text-lg font-medium text-ink/90 max-w-xl mx-auto bg-creamLight/80 backdrop-blur-sm px-5 py-2.5 rounded-2xl border border-wood/25 shadow-sm">
+        「有動物陪伴的日子，就是最好的農場生活。」<br class="sm:hidden" />
+        <span class="text-inkLight text-xs sm:text-sm block sm:inline sm:ml-1">在雲丘，和動物朋友一起享受每一天。</span>
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+        <a href="#explore"
+          class="btn-toy w-full sm:w-auto px-7 py-3.5 rounded-full bg-meadow hover:bg-forest text-ink hover:text-white font-display font-bold text-sm sm:text-base tracking-wide shadow-toy flex items-center justify-center gap-2">
+          <span>🌱 開始探索 START EXPLORING</span>
+        </a>
+        <a href="#friends"
+          class="btn-toy w-full sm:w-auto px-7 py-3.5 rounded-full bg-creamLight/95 hover:bg-sprout text-ink border-2 border-wood/40 font-display font-bold text-sm sm:text-base tracking-wide shadow-toy flex items-center justify-center gap-2">
+          <span>🐾 認識動物 MEET OUR FRIENDS</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Bottom Interactive Pill Hint -->
+    <div class="relative z-20 pb-6 sm:pb-8 flex flex-col items-center gap-2">
+      <div class="px-4 py-1.5 rounded-full bg-creamLight/85 backdrop-blur-sm border border-wood/30 text-xs text-inkLight shadow-sm">
+        移動滑鼠可微調雲丘 3D 視角 · 向下捲動展開故事
+      </div>
+      <a href="#world" aria-label="向下捲動" class="w-8 h-8 rounded-full bg-creamLight/90 border border-wood/35 flex items-center justify-center text-woodDark animate-bounce shadow-sm">
+        ↓
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       02｜WORLD SECTION — 世界觀與五大農場區域地圖
+       ========================================================= -->
+  <section id="world" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 paper-bg border-t border-wood/25">
+    <div class="max-w-7xl mx-auto">
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto reveal-item">
+        <span class="inline-block px-4 py-1 rounded-full bg-sky/35 text-ink font-display font-semibold text-xs tracking-widest mb-3">
+          WELCOME TO CLOUDHILL.
+        </span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-ink tracking-tight">
+          這裡，是雲丘。
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-inkLight leading-relaxed">
+          雲丘農場坐落在被綠色山丘、微風森林、清澈溪流與野花田包圍的靜謐小村莊。<br class="hidden sm:inline" />
+          一封溫暖的邀請信，帶你遠離繁忙城市，接手這座等待重新綻放生機的小農場。
+        </p>
+      </div>
+
+      <!-- Slow Living Principles Pills -->
+      <div class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 reveal-item">
+        <div class="bg-creamLight rounded-3xl p-4 sm:p-5 border border-wood/25 shadow-soft flex items-start gap-3">
+          <span class="text-2xl">🌿</span>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-ink">沒有時間壓力</h3>
+            <p class="text-xs text-inkLight mt-1">無倒數計時、無強制每日登入，隨時回來都一樣溫暖。</p>
+          </div>
+        </div>
+        <div class="bg-creamLight rounded-3xl p-4 sm:p-5 border border-wood/25 shadow-soft flex items-start gap-3">
+          <span class="text-2xl">🥕</span>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-ink">作物永不枯萎</h3>
+            <p class="text-xs text-inkLight mt-1">播種與澆水皆依你的步調進行，每一份收成都在等你。</p>
+          </div>
+        </div>
+        <div class="bg-creamLight rounded-3xl p-4 sm:p-5 border border-wood/25 shadow-soft flex items-start gap-3">
+          <span class="text-2xl">🐑</span>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-ink">動物永遠開心</h3>
+            <p class="text-xs text-inkLight mt-1">不會因離線而扣分或生病，牠們總在陽光下等你散步。</p>
+          </div>
+        </div>
+        <div class="bg-creamLight rounded-3xl p-4 sm:p-5 border border-wood/25 shadow-soft flex items-start gap-3">
+          <span class="text-2xl">🧭</span>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-ink">自由探索創造</h3>
+            <p class="text-xs text-inkLight mt-1">自由安排日常順序，發掘森林小徑裡的隱藏驚喜。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Low Poly Farm Map + Zone Detail Drawer -->
+      <div class="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch reveal-item">
+        <!-- Interactive Low Poly Illustrated Valley Map (7 cols) -->
+        <div class="lg:col-span-7 bg-creamLight rounded-3xl p-4 sm:p-6 border-2 border-wood/30 shadow-toy relative overflow-hidden flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-display font-bold text-sm text-woodDark flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-meadow"></span>
+              CLOUDHILL VALLEY MAP｜點擊或懸停探索五大區域
+            </span>
+            <span id="map-hover-badge" class="text-xs px-3 py-1 rounded-full bg-sprout/80 text-ink font-medium">
+              已選擇：小木屋
+            </span>
+          </div>
+
+          <!-- Custom Low Poly Isometric Valley SVG Map -->
+          <div class="relative w-full aspect-[16/11] rounded-2xl overflow-hidden bg-gradient-to-b from-[#CBE6F0] to-[#E5F0D4] border border-wood/25">
+            <svg id="valley-map-svg" viewBox="0 0 800 550" class="w-full h-full select-none">
+              <!-- Sky & Distant Low Poly Mountains -->
+              <polygon points="0,220 140,95 290,220" fill="#B7D2B0"/>
+              <polygon points="140,95 290,220 350,220 215,120" fill="#9BB995"/>
+              <polygon points="240,220 430,75 620,220" fill="#A9C99B"/>
+              <polygon points="430,75 620,220 710,220 520,105" fill="#8C9F85"/>
+              <polygon points="560,220 710,115 800,195 800,220" fill="#B7D2B0"/>
+
+              <!-- Soft Low Poly Clouds -->
+              <g class="animate-cloud">
+                <polygon points="110,65 145,45 185,55 195,75 105,78" fill="#FAF5E8" opacity="0.92"/>
+                <polygon points="540,55 585,35 630,48 640,68 535,70" fill="#FAF5E8" opacity="0.92"/>
+              </g>
+
+              <!-- Rolling Meadow Base -->
+              <polygon points="0,210 800,210 800,550 0,550" fill="#D5E5BD"/>
+              <polygon points="0,270 380,225 800,295 800,550 0,550" fill="#A9C99B"/>
+              <polygon points="160,360 560,310 800,410 800,550 0,550" fill="#99BC8A"/>
+
+              <!-- Winding Dirt Path connecting all 5 zones -->
+              <polygon points="210,275 245,270 390,335 555,280 580,295 405,360 365,435 330,430 365,350" fill="#E8CFAF"/>
+
+              <!-- ZONE 5: 森林小徑 (Forest Trail - Top Right) -->
+              <g class="map-zone cursor-pointer transition-transform duration-300 hover:scale-[1.03]" data-zone="forest" onclick="selectWorldZone('forest')" onmouseenter="hoverWorldZone('forest')">
+                <ellipse cx="660" cy="235" rx="105" ry="58" fill="#8C9F85" opacity="0.35"/>
+                <!-- Low Poly Pines -->
+                <polygon points="620,150 592,215 648,215" fill="#6E8B6B"/>
+                <polygon points="620,125 598,175 642,175" fill="#8C9F85"/>
+                <polygon points="685,165 655,235 715,235" fill="#5F7C5D"/>
+                <polygon points="685,135 660,192 710,192" fill="#7D9B78"/>
+                <polygon points="730,190 706,245 754,245" fill="#6E8B6B"/>
+                <!-- Glowing Mushroom & Sign -->
+                <circle cx="640" cy="238" r="7" fill="#EDC5A8"/>
+                <rect x="638" y="238" width="4" height="8" fill="#FAF5E8"/>
+                <g transform="translate(660, 268)">
+                  <rect x="-54" y="-14" width="108" height="28" rx="14" fill="#FAF5E8" stroke="#8C9F85" stroke-width="2"/>
+                  <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3E35">🌲 森林小徑</text>
+                </g>
+              </g>
+
+              <!-- ZONE 2: 動物穀倉 (Animal Barn - Top Left) -->
+              <g class="map-zone cursor-pointer transition-transform duration-300 hover:scale-[1.03]" data-zone="barn" onclick="selectWorldZone('barn')" onmouseenter="hoverWorldZone('barn')">
+                <ellipse cx="185" cy="255" rx="115" ry="62" fill="#DDAE83" opacity="0.28"/>
+                <!-- Barn Structure -->
+                <polygon points="135,205 225,205 225,260 135,260" fill="#D4846A"/>
+                <polygon points="125,205 180,160 235,205" fill="#A85A44"/>
+                <polygon points="165,222 195,222 195,260 165,260" fill="#FAF5E8"/>
+                <line x1="165" y1="222" x2="195" y2="260" stroke="#A85A44" stroke-width="2.5"/>
+                <line x1="195" y1="222" x2="165" y2="260" stroke="#A85A44" stroke-width="2.5"/>
+                <!-- Silo -->
+                <rect x="230" y="182" width="24" height="75" fill="#E9D9DC"/>
+                <polygon points="228,182 242,166 256,182" fill="#9DC7D8"/>
+                <!-- Tiny Cow & Sheep Icons -->
+                <circle cx="112" cy="252" r="10" fill="#FAF5E8"/>
+                <circle cx="108" cy="249" r="3" fill="#6B523E"/>
+                <circle cx="268" cy="250" r="9" fill="#FFFFFF"/>
+                <g transform="translate(185, 290)">
+                  <rect x="-54" y="-14" width="108" height="28" rx="14" fill="#FAF5E8" stroke="#DDAE83" stroke-width="2"/>
+                  <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3E35">🐄 動物穀倉</text>
+                </g>
+              </g>
+
+              <!-- ZONE 1: 小木屋 (Cozy Cabin - Center) -->
+              <g class="map-zone cursor-pointer transition-transform duration-300 hover:scale-[1.03]" data-zone="cabin" onclick="selectWorldZone('cabin')" onmouseenter="hoverWorldZone('cabin')">
+                <ellipse cx="405" cy="315" rx="105" ry="56" fill="#EDC5A8" opacity="0.35"/>
+                <!-- Chimney -->
+                <rect x="428" y="218" width="14" height="32" fill="#9E8B7E"/>
+                <circle cx="436" cy="205" r="6" fill="#FAF5E8" opacity="0.8"/>
+                <!-- Cabin Body -->
+                <polygon points="360,262 450,262 450,315 360,315" fill="#DDAE83"/>
+                <polygon points="348,262 405,216 462,262" fill="#8C6749"/>
+                <rect x="394" y="280" width="22" height="35" fill="#6B523E"/>
+                <rect x="370" y="276" width="16" height="16" fill="#FFE699"/>
+                <rect x="424" y="276" width="16" height="16" fill="#FFE699"/>
+                <!-- Orange Cat Silhouette -->
+                <circle cx="344" cy="306" r="8" fill="#EDC5A8"/>
+                <g transform="translate(405, 344)">
+                  <rect x="-50" y="-14" width="100" height="28" rx="14" fill="#A9C99B" stroke="#4A3E35" stroke-width="2"/>
+                  <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3E35">🏡 小木屋</text>
+                </g>
+              </g>
+
+              <!-- ZONE 3: 小小菜園 (Little Garden - Bottom Left) -->
+              <g class="map-zone cursor-pointer transition-transform duration-300 hover:scale-[1.03]" data-zone="garden" onclick="selectWorldZone('garden')" onmouseenter="hoverWorldZone('garden')">
+                <ellipse cx="205" cy="435" rx="115" ry="60" fill="#A9C99B" opacity="0.4"/>
+                <!-- Raised Soil Beds -->
+                <polygon points="130,410 215,395 230,425 145,440" fill="#8C6749"/>
+                <polygon points="155,448 245,433 260,463 170,478" fill="#8C6749"/>
+                <!-- Carrots & Sunflowers -->
+                <circle cx="160" cy="412" r="7" fill="#F2994A"/>
+                <circle cx="192" cy="406" r="7" fill="#EB5757"/>
+                <circle cx="205" cy="445" r="8" fill="#F2C94C"/>
+                <circle cx="235" cy="440" r="8" fill="#F2C94C"/>
+                <!-- Bunny Ears -->
+                <ellipse cx="115" cy="422" rx="3" ry="9" fill="#FAF5E8"/>
+                <ellipse cx="122" cy="422" rx="3" ry="9" fill="#FAF5E8"/>
+                <circle cx="118" cy="434" r="9" fill="#FAF5E8"/>
+                <g transform="translate(205, 502)">
+                  <rect x="-54" y="-14" width="108" height="28" rx="14" fill="#FAF5E8" stroke="#A9C99B" stroke-width="2"/>
+                  <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3E35">🥕 小小菜園</text>
+                </g>
+              </g>
+
+              <!-- ZONE 4: 湖畔草地 (Lakeside Meadow - Bottom Right) -->
+              <g class="map-zone cursor-pointer transition-transform duration-300 hover:scale-[1.03]" data-zone="lake" onclick="selectWorldZone('lake')" onmouseenter="hoverWorldZone('lake')">
+                <!-- Low Poly Pond -->
+                <polygon points="500,415 575,382 675,395 705,445 635,485 525,470" fill="#9DC7D8"/>
+                <polygon points="525,422 580,396 655,406 675,442 620,468 540,456" fill="#B6DCEB"/>
+                <!-- Wooden Dock & Picnic Mat -->
+                <rect x="490" y="422" width="38" height="14" rx="3" fill="#DDAE83"/>
+                <polygon points="455,462 495,455 505,480 465,487" fill="#E9D9DC"/>
+                <circle cx="620" cy="435" r="8" fill="#A9C99B"/>
+                <g transform="translate(600, 504)">
+                  <rect x="-54" y="-14" width="108" height="28" rx="14" fill="#FAF5E8" stroke="#9DC7D8" stroke-width="2"/>
+                  <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3E35">💧 湖畔草地</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Quick Zone Selector Pills for Mobile / Accessibility -->
+          <div class="mt-4 flex flex-wrap gap-2 justify-center">
+            <button type="button" onclick="selectWorldZone('cabin')" class="zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-meadow text-ink border border-ink/15 transition-all" data-zone-btn="cabin">🏡 小木屋</button>
+            <button type="button" onclick="selectWorldZone('barn')" class="zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream text-ink border border-wood/30 hover:bg-sprout/60 transition-all" data-zone-btn="barn">🐄 動物穀倉</button>
+            <button type="button" onclick="selectWorldZone('garden')" class="zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream text-ink border border-wood/30 hover:bg-sprout/60 transition-all" data-zone-btn="garden">🥕 小小菜園</button>
+            <button type="button" onclick="selectWorldZone('lake')" class="zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream text-ink border border-wood/30 hover:bg-sprout/60 transition-all" data-zone-btn="lake">💧 湖畔草地</button>
+            <button type="button" onclick="selectWorldZone('forest')" class="zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream text-ink border border-wood/30 hover:bg-sprout/60 transition-all" data-zone-btn="forest">🌲 森林小徑</button>
+          </div>
+        </div>
+
+        <!-- Selected Zone Detail Card (5 cols) -->
+        <div id="world-detail-card" class="lg:col-span-5 bg-creamLight rounded-3xl p-6 sm:p-8 border-2 border-wood/30 shadow-toy flex flex-col justify-between transition-all duration-300">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <span id="zone-en-tag" class="px-3.5 py-1 rounded-full bg-sprout text-ink font-display font-semibold text-xs tracking-wider">
+                COZY CABIN
+              </span>
+              <span id="zone-resident-tag" class="text-xs font-medium text-woodDark bg-cream px-3 py-1 rounded-full border border-wood/30">
+                常駐夥伴：橘子 Tangy
+              </span>
+            </div>
+
+            <div class="mt-5 flex items-center gap-3">
+              <div id="zone-icon-box" class="w-14 h-14 rounded-2xl bg-softOrange/60 flex items-center justify-center text-3xl shadow-sm">
+                🏡
+              </div>
+              <div>
+                <h3 id="zone-title" class="text-2xl sm:text-3xl font-bold text-ink">小木屋</h3>
+                <p id="zone-subtitle" class="text-sm text-woodDark font-medium">溫暖壁爐與農場生活日記的起點</p>
+              </div>
+            </div>
+
+            <p id="zone-desc" class="mt-5 text-sm sm:text-base text-ink/90 leading-relaxed">
+              玩家的主要居住空間，由溫潤的雲丘原木搭建而成。屋內擺放著柔軟的編織地毯、壁爐與木製書桌，在這裡可以翻閱農場生活日記、整理收集到的自然小物，也能隨時小憩片刻。
+            </p>
+
+            <div class="mt-6 bg-cream/80 rounded-2xl p-4 border border-wood/25">
+              <h4 class="text-xs font-bold text-woodDark uppercase tracking-wider mb-2.5">✨ 在這裡可以體驗的日常</h4>
+              <ul id="zone-activities" class="space-y-2 text-sm text-ink">
+                <li class="flex items-center gap-2"><span class="text-meadow">●</span> 查看與動物夥伴解鎖的生活回憶日記</li>
+                <li class="flex items-center gap-2"><span class="text-meadow">●</span> 陪橘子在門廊曬太陽與玩逗貓草</li>
+                <li class="flex items-center gap-2"><span class="text-meadow">●</span> 挑選木椅與路燈裝飾屋前庭院</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-wood/20 flex items-center justify-between gap-3">
+            <span class="text-xs text-inkLight">想親自走進這個區域嗎？</span>
+            <button type="button" id="zone-jump-3d-btn" onclick="jumpTo3DZone('cabin')"
+              class="btn-toy px-5 py-2.5 rounded-full bg-meadow hover:bg-forest text-ink hover:text-white font-bold text-xs sm:text-sm shadow-sm flex items-center gap-1.5">
+              <span>前往 3D 場景查看</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       03｜CHARACTERS SECTION — 五位原創 Low Poly 動物夥伴
+       ========================================================= -->
+  <section id="friends" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-sprout/45 via-cream to-creamLight border-t border-wood/25">
+    <div class="max-w-7xl mx-auto">
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto reveal-item">
+        <span class="inline-block px-4 py-1 rounded-full bg-softPink text-ink font-display font-semibold text-xs tracking-widest mb-3">
+          MEET OUR LITTLE FRIENDS.
+        </span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-ink tracking-tight">
+          認識你的農場好朋友。
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-inkLight">
+          每一隻小動物都有自己的節奏、喜好與小脾氣。點擊角色卡片，轉動牠們的 3D 模型並和牠們打聲招呼吧！
+        </p>
+      </div>
+
+      <!-- Character Master-Detail Layout -->
+      <div class="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start reveal-item">
+        <!-- Left Column: 5 Animal Selector Cards (5 cols) -->
+        <div id="character-cards-list" class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+          <!-- Dynamically populated by JS -->
+        </div>
+
+        <!-- Right Column: Interactive 3D Character Stage + Story & Interaction Card (7 cols) -->
+        <div class="lg:col-span-7 bg-creamLight rounded-3xl border-2 border-wood/30 shadow-toy overflow-hidden">
+          <div class="grid grid-cols-1 md:grid-cols-12">
+            <!-- Interactive 3D Turntable Stage for Active Animal (5 cols) -->
+            <div class="md:col-span-5 relative min-h-[280px] sm:min-h-[340px] bg-gradient-to-b from-[#DCEEF3] to-[#D5E5BD] flex flex-col justify-between p-4 border-b md:border-b-0 md:border-r border-wood/25">
+              <div class="relative z-10 flex items-center justify-between">
+                <span id="char-number-badge" class="px-3 py-1 rounded-full bg-creamLight/90 font-display font-bold text-xs text-woodDark shadow-sm">
+                  01 / 05
+                </span>
+                <span class="text-[11px] bg-creamLight/80 px-2.5 py-1 rounded-full text-inkLight">
+                  拖曳旋轉 3D 模型
+                </span>
+              </div>
+
+              <!-- 3D Character Canvas -->
+              <div id="char-stage-container" class="absolute inset-0 z-0 cursor-grab active:cursor-grabbing">
+                <canvas id="char-3d-canvas"></canvas>
+              </div>
+
+              <!-- Speech Bubble Overlay -->
+              <div id="char-speech-bubble" class="relative z-10 mt-auto bg-creamLight/95 backdrop-blur-sm rounded-2xl p-3.5 border border-wood/35 shadow-sm transition-all duration-300">
+                <p id="char-dialogue-text" class="text-xs sm:text-sm font-medium text-ink leading-relaxed">
+                  「今天花園裡好像又長出了新的小花呢！」
+                </p>
+              </div>
+            </div>
+
+            <!-- Character Bio & Interactive Actions (7 cols) -->
+            <div id="char-detail-panel" class="md:col-span-7 p-6 sm:p-7 flex flex-col justify-between transition-opacity duration-300">
+              <div>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div class="flex items-center gap-2.5">
+                      <h3 id="char-name" class="text-2xl sm:text-3xl font-bold text-ink">棉球 Cotton</h3>
+                      <span id="char-species" class="px-3 py-0.5 rounded-full bg-softPink text-ink text-xs font-bold">
+                        兔子
+                      </span>
+                    </div>
+                    <p id="char-role" class="text-xs sm:text-sm font-medium text-forest mt-1">
+                      小小菜園的害羞園丁
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Personality & Favorites Badges -->
+                <div class="mt-4 grid grid-cols-2 gap-2.5">
+                  <div class="bg-cream/80 rounded-2xl p-3 border border-wood/20">
+                    <span class="text-[11px] font-bold text-woodDark block">✨ 個性特質</span>
+                    <span id="char-personality" class="text-xs sm:text-sm font-medium text-ink mt-0.5 block">
+                      害羞、細心、喜歡花草
+                    </span>
+                  </div>
+                  <div class="bg-cream/80 rounded-2xl p-3 border border-wood/20">
+                    <span class="text-[11px] font-bold text-woodDark block">💛 最喜歡的事物</span>
+                    <span id="char-likes" class="text-xs sm:text-sm font-medium text-ink mt-0.5 block">
+                      胡蘿蔔、花朵、柔軟草地
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Background Story -->
+                <div class="mt-4">
+                  <h4 class="text-xs font-bold text-woodDark uppercase tracking-wider mb-1.5">角色小故事</h4>
+                  <p id="char-story" class="text-xs sm:text-sm text-ink/90 leading-relaxed">
+                    棉球是最早搬進雲丘菜園的小居民。牠總會在清晨露水還沒乾的時候，用粉色小鼻子輕輕檢查每一株嫩芽，確保每朵小花都有好好長大。
+                  </p>
+                </div>
+
+                <!-- Signature Interactions Tags -->
+                <div class="mt-4">
+                  <h4 class="text-xs font-bold text-woodDark uppercase tracking-wider mb-2">專屬互動方式</h4>
+                  <div id="char-interactions-tags" class="flex flex-wrap gap-1.5">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interactive CTA Buttons -->
+              <div class="mt-6 pt-4 border-t border-wood/20 flex flex-wrap items-center gap-2.5">
+                <button type="button" id="interact-animal-btn" onclick="triggerCharacterStageInteraction()"
+                  class="btn-toy flex-1 min-w-[150px] px-5 py-3 rounded-full bg-meadow hover:bg-forest text-ink hover:text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2">
+                  <span>💕 與牠互動</span>
+                </button>
+                <button type="button" onclick="goCareThisAnimal()"
+                  class="btn-toy px-4 py-3 rounded-full bg-cream hover:bg-sprout text-ink border border-wood/35 font-bold text-xs sm:text-sm shadow-sm">
+                  去農場照顧牠 →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       04｜STORY SECTION — 六幕捲動式農場物語 (SCROLL STORYTELLING)
+       ========================================================= -->
+  <section id="story" class="relative py-20 sm:py-28 px-4 sm:px-6 lg:px-8 paper-bg border-t border-wood/25">
+    <div class="max-w-7xl mx-auto">
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto reveal-item">
+        <span class="inline-block px-4 py-1 rounded-full bg-lavender/40 text-ink font-display font-semibold text-xs tracking-widest mb-3">
+          LITTLE MOMENTS, BIG HAPPINESS.
+        </span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-ink tracking-tight">
+          農場的每一天，都有一點小故事。
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-inkLight">
+          隨著頁面捲動，走進雲丘從寧靜甦醒、到再度充滿笑聲的六幕溫暖時光。
+        </p>
+      </div>
+
+      <!-- Sticky Scroll Narrative Layout -->
+      <div class="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Sticky Visual Stage (Left / Top on mobile - 6 cols) -->
+        <div class="lg:col-span-6 lg:sticky lg:top-24 z-20">
+          <div id="story-visual-stage" class="rounded-3xl overflow-hidden border-2 border-wood/35 shadow-toy bg-gradient-to-b from-[#CBE6F0] to-[#D5E5BD] transition-colors duration-700">
+            <!-- Top Story Progress Bar -->
+            <div class="px-5 pt-4 pb-2 flex items-center justify-between text-xs font-bold text-ink/80">
+              <span id="story-act-indicator" class="font-display tracking-wider bg-creamLight/85 px-3 py-1 rounded-full">
+                ACT 01 / 06
+              </span>
+              <span id="story-mood-label" class="bg-creamLight/85 px-3 py-1 rounded-full">
+                清晨薄霧 · 初次相遇
+              </span>
+            </div>
+
+            <!-- Interactive Multi-Layer Low Poly Diorama SVG -->
+            <div class="relative w-full aspect-[16/10] px-4 pb-4">
+              <svg id="story-diorama-svg" viewBox="0 0 640 380" class="w-full h-full rounded-2xl overflow-hidden shadow-inner">
+                <defs>
+                  <linearGradient id="storySkyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop id="skyStopTop" offset="0%" stop-color="#B9DCEB"/>
+                    <stop id="skyStopBottom" offset="100%" stop-color="#FAF5E8"/>
+                  </linearGradient>
+                </defs>
+                <!-- Dynamic Sky -->
+                <rect id="story-sky-rect" width="640" height="380" fill="url(#storySkyGrad)"/>
+
+                <!-- Sun / Moon Orb -->
+                <circle id="story-sun" cx="510" cy="85" r="34" fill="#FFE699" opacity="0.9"/>
+
+                <!-- Parallax Hills Back -->
+                <polygon id="story-hill-back" points="0,245 160,130 340,245 480,145 640,245 640,380 0,380" fill="#B7D2B0"/>
+
+                <!-- Parallax Hills Front -->
+                <polygon id="story-hill-front" points="0,275 240,215 470,255 640,220 640,380 0,380" fill="#A9C99B"/>
+
+                <!-- Cozy Low Poly Cabin -->
+                <g id="story-cabin-group" transform="translate(150, 175)">
+                  <polygon points="0,45 90,45 90,95 0,95" fill="#DDAE83"/>
+                  <polygon points="-12,45 45,5 102,45" fill="#8C6749"/>
+                  <rect x="36" y="62" width="18" height="33" fill="#6B523E"/>
+                  <rect id="story-window-1" x="12" y="58" width="15" height="15" fill="#FFE699"/>
+                  <rect id="story-window-2" x="63" y="58" width="15" height="15" fill="#FFE699"/>
+                </g>
+
+                <!-- Garden & Flowers Layer (Grows in Act 4+) -->
+                <g id="story-garden-layer" opacity="0.35" class="transition-opacity duration-700">
+                  <polygon points="295,280 430,265 450,305 315,320" fill="#8C6749"/>
+                  <circle cx="330" cy="285" r="7" fill="#F2994A"/>
+                  <circle cx="362" cy="281" r="7" fill="#EB5757"/>
+                  <circle cx="395" cy="278" r="8" fill="#F2C94C"/>
+                  <circle cx="422" cy="292" r="7" fill="#E9D9DC"/>
+                </g>
+
+                <!-- Five Animal Friends Group (Appears in Act 3+) -->
+                <g id="story-animals-layer" opacity="0.2" class="transition-opacity duration-700">
+                  <!-- Cotton (Bunny) -->
+                  <g transform="translate(275, 295)">
+                    <ellipse cx="-4" cy="-16" rx="3" ry="10" fill="#FAF5E8"/>
+                    <ellipse cx="4" cy="-16" rx="3" ry="10" fill="#FAF5E8"/>
+                    <circle cx="0" cy="0" r="12" fill="#FAF5E8"/>
+                  </g>
+                  <!-- Butter (Cow) -->
+                  <g transform="translate(475, 285)">
+                    <ellipse cx="0" cy="0" rx="22" ry="15" fill="#FAF5E8"/>
+                    <circle cx="-16" cy="-8" r="11" fill="#FAF5E8"/>
+                    <circle cx="4" cy="-3" r="6" fill="#8C6749"/>
+                  </g>
+                  <!-- Chippy (Chick) -->
+                  <g transform="translate(320, 322)">
+                    <circle cx="0" cy="0" r="9" fill="#F2C94C"/>
+                    <polygon points="8,-2 14,0 8,3" fill="#F2994A"/>
+                  </g>
+                  <!-- Snowy (Sheep) -->
+                  <g transform="translate(530, 305)">
+                    <circle cx="0" cy="0" r="16" fill="#FFFFFF"/>
+                    <circle cx="-13" cy="-2" r="8" fill="#E9D9DC"/>
+                  </g>
+                  <!-- Tangy (Cat) -->
+                  <g transform="translate(230, 268)">
+                    <circle cx="0" cy="0" r="10" fill="#EDC5A8"/>
+                    <polygon points="-8,-6 -4,-15 0,-7" fill="#EDC5A8"/>
+                    <polygon points="0,-7 4,-15 8,-6" fill="#EDC5E8"/>
+                  </g>
+                </g>
+
+                <!-- Foreground Low Poly Trees -->
+                <polygon points="55,215 28,295 82,295" fill="#7D9B78"/>
+                <polygon points="55,180 34,245 76,245" fill="#8C9F85"/>
+                <polygon points="585,205 555,295 615,295" fill="#6E8B6B"/>
+                <polygon points="585,168 560,242 610,242" fill="#8C9F85"/>
+              </svg>
+            </div>
+
+            <!-- Act Quick Jump Pills -->
+            <div class="px-4 pb-4 flex items-center justify-between gap-1.5">
+              <button type="button" onclick="activateStoryAct(0)" class="story-dot flex-1 h-2 rounded-full bg-meadow transition-all" aria-label="第一幕"></button>
+              <button type="button" onclick="activateStoryAct(1)" class="story-dot flex-1 h-2 rounded-full bg-wood/30 transition-all" aria-label="第二幕"></button>
+              <button type="button" onclick="activateStoryAct(2)" class="story-dot flex-1 h-2 rounded-full bg-wood/30 transition-all" aria-label="第三幕"></button>
+              <button type="button" onclick="activateStoryAct(3)" class="story-dot flex-1 h-2 rounded-full bg-wood/30 transition-all" aria-label="第四幕"></button>
+              <button type="button" onclick="activateStoryAct(4)" class="story-dot flex-1 h-2 rounded-full bg-wood/30 transition-all" aria-label="第五幕"></button>
+              <button type="button" onclick="activateStoryAct(5)" class="story-dot flex-1 h-2 rounded-full bg-wood/30 transition-all" aria-label="第六幕"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6 Scroll-Triggered Story Cards (Right - 6 cols) -->
+        <div class="lg:col-span-6 space-y-6 sm:space-y-10">
+          <!-- Act 1 -->
+          <article class="story-act-card bg-creamLight rounded-3xl p-6 sm:p-8 border-2 border-meadow shadow-toy transition-all duration-500" data-act="0">
+            <span class="font-display font-bold text-xs text-forest tracking-widest">ACT 01｜第一幕</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">初次來到雲丘</h3>
+            <p class="mt-3 text-sm sm:text-base text-ink/90 leading-relaxed">
+              清晨的薄霧輕輕覆蓋著綠色山丘，你握著那封寫著「給渴望慢下來的你」的信件，沿著石子小路走進雲丘。微風吹過草梢，遠方傳來清脆的風鈴聲，一切安靜而溫柔。
+            </p>
+          </article>
+
+          <!-- Act 2 -->
+          <article class="story-act-card bg-creamLight/80 rounded-3xl p-6 sm:p-8 border border-wood/30 shadow-soft transition-all duration-500" data-act="1">
+            <span class="font-display font-bold text-xs text-woodDark tracking-widest">ACT 02｜第二幕</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">揭開農場背景</h3>
+            <p class="mt-3 text-sm sm:text-base text-ink/90 leading-relaxed">
+              眼前的木製小屋與紅瓦穀倉雖然有些歲月痕跡，菜園也長滿了野草，但每一塊木板都留著過去被細心照料的溫度。這裡不需要急著大興土木，只要一點一滴重新整理就好。
+            </p>
+          </article>
+
+          <!-- Act 3 -->
+          <article class="story-act-card bg-creamLight/80 rounded-3xl p-6 sm:p-8 border border-wood/30 shadow-soft transition-all duration-500" data-act="2">
+            <span class="font-display font-bold text-xs text-woodDark tracking-widest">ACT 03｜第三幕</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">動物朋友登場</h3>
+            <p class="mt-3 text-sm sm:text-base text-ink/90 leading-relaxed">
+              木門發出輕響，五雙好奇的眼睛從草叢與穀倉後探了出來——害羞的兔子棉球、溫柔的乳牛奶油、愛探險的小雞啾啾、愛打瞌睡的綿羊雪球，還有總像小管家般的橘貓橘子。
+            </p>
+          </article>
+
+          <!-- Act 4 -->
+          <article class="story-act-card bg-creamLight/80 rounded-3xl p-6 sm:p-8 border border-wood/30 shadow-soft transition-all duration-500" data-act="3">
+            <span class="font-display font-bold text-xs text-woodDark tracking-widest">ACT 04｜第四幕</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">一起整理農場</h3>
+            <p class="mt-3 text-sm sm:text-base text-ink/90 leading-relaxed">
+              你鬆開菜園的泥土、灑下胡蘿蔔與向日葵種子，為木屋點亮溫暖的燈火。棉球幫忙照看花苗，啾啾在田埂旁跳躍加油，荒蕪的角落漸漸染上嫩綠與金黃。
+            </p>
+          </article>
+
+          <!-- Act 5 -->
+          <article class="story-act-card bg-creamLight/80 rounded-3xl p-6 sm:p-8 border border-wood/30 shadow-soft transition-all duration-500" data-act="4">
+            <span class="font-display font-bold text-xs text-woodDark tracking-widest">ACT 05｜第五幕</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">探索農場場景</h3>
+            <p class="mt-3 text-sm sm:text-base text-ink/90 leading-relaxed">
+              午後的陽光灑在湖畔木棧道上，奶油在草坡邊打盹，雪球把臉埋進暖洋洋的牧草裡。沿著森林小徑散步，還能遇見閃閃發亮的藍蝴蝶與小蘑菇。
+            </p>
+          </article>
+
+          <!-- Act 6 -->
+          <article class="story-act-card bg-creamLight/80 rounded-3xl p-6 sm:p-8 border border-wood/30 shadow-soft transition-all duration-500" data-act="5">
+            <span class="font-display font-bold text-xs text-woodDark tracking-widest">ACT 06｜第六幕</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">展開新的日常</h3>
+            <p class="mt-3 text-sm sm:text-base text-ink/90 leading-relaxed">
+              夕陽把整座雲丘染成溫柔的蜜桃橘，小木屋的窗戶亮起暖光，五隻動物圍坐在草地上。在這裡，成為最厲害的農場主並不重要——有牠們陪伴的每一天，就是最好的生活。
+            </p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       05｜EXPLORE SECTION — 真正可旋轉、點擊與遊玩的 3D 低多邊形農場
+       ========================================================= -->
+  <section id="explore" class="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-creamLight via-sprout/35 to-cream border-t border-wood/25">
+    <div class="max-w-7xl mx-auto">
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto reveal-item">
+        <span class="inline-block px-4 py-1 rounded-full bg-meadow/50 text-ink font-display font-semibold text-xs tracking-widest mb-3">
+          EXPLORE OUR LITTLE FARM.
+        </span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-ink tracking-tight">
+          來農場走走吧！
+        </h2>
+        <p class="mt-3 text-sm sm:text-base text-inkLight">
+          自由旋轉 3D 雲丘農場、點擊建築或動物朋友，並透過下方農場工作台體驗照顧動物、種植作物與佈置庭院。
+        </p>
+      </div>
+
+      <!-- Main Interactive 3D Viewport + Game Controls Grid -->
+      <div class="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- LEFT / TOP: Interactive 3D Low Poly Farm Canvas (7 cols) -->
+        <div class="lg:col-span-7 bg-creamLight rounded-3xl p-3 sm:p-4 border-2 border-wood/35 shadow-toy">
+          <!-- Top Toolbar: Season Switcher & Camera Reset -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 px-1">
+            <!-- 4 Seasons / Atmosphere Switcher -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-xs font-bold text-woodDark mr-1">季節氛圍：</span>
+              <button type="button" onclick="setFarmSeason('spring')" data-season="spring"
+                class="season-btn px-3 py-1.5 rounded-full text-xs font-bold bg-meadow text-ink shadow-sm transition-all">
+                🌸 春櫻
+              </button>
+              <button type="button" onclick="setFarmSeason('summer')" data-season="summer"
+                class="season-btn px-3 py-1.5 rounded-full text-xs font-bold bg-cream text-ink hover:bg-sprout/60 transition-all">
+                ☀️ 盛夏
+              </button>
+              <button type="button" onclick="setFarmSeason('autumn')" data-season="autumn"
+                class="season-btn px-3 py-1.5 rounded-full text-xs font-bold bg-cream text-ink hover:bg-sprout/60 transition-all">
+                🍂 秋夕
+              </button>
+              <button type="button" onclick="setFarmSeason('twilight')" data-season="twilight"
+                class="season-btn px-3 py-1.5 rounded-full text-xs font-bold bg-cream text-ink hover:bg-sprout/60 transition-all">
+                ✨ 星夜
+              </button>
+            </div>
+
+            <!-- Camera Controls -->
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="zoomExploreCamera(-3)" aria-label="放大視角"
+                class="btn-toy w-8 h-8 rounded-full bg-cream border border-wood/35 text-ink font-bold text-sm flex items-center justify-center hover:bg-sprout/60">
+                +
+              </button>
+              <button type="button" onclick="zoomExploreCamera(3)" aria-label="縮小視角"
+                class="btn-toy w-8 h-8 rounded-full bg-cream border border-wood/35 text-ink font-bold text-sm flex items-center justify-center hover:bg-sprout/60">
+                −
+              </button>
+              <button type="button" onclick="resetExploreCamera()"
+                class="btn-toy px-3.5 py-1.5 rounded-full bg-sky/45 border border-sky text-ink font-bold text-xs hover:bg-sky/75">
+                ↺ 重設視角
+              </button>
+            </div>
+          </div>
+
+          <!-- 3D Interactive Canvas Container -->
+          <div id="explore-canvas-wrapper" class="relative w-full h-[380px] sm:h-[470px] lg:h-[510px] rounded-2xl overflow-hidden bg-gradient-to-b from-[#BCE0EE] to-[#D5E5BD] border border-wood/25 cursor-grab active:cursor-grabbing select-none">
+            <canvas id="explore-3d-canvas"></canvas>
+
+            <!-- Hover Object Floating Tag -->
+            <div id="explore-hover-pill" class="pointer-events-none hidden absolute top-3 left-3 z-20 px-3.5 py-1.5 rounded-full bg-creamLight/95 backdrop-blur-sm border border-wood/40 text-xs font-bold text-ink shadow-sm">
+              點擊查看
+            </div>
+
+            <!-- Live Feedback Speech / Event Banner inside 3D Viewport -->
+            <div id="explore-toast" class="pointer-events-none absolute top-3 right-3 left-3 sm:left-auto sm:max-w-sm z-20 bg-creamLight/95 backdrop-blur-md rounded-2xl p-3.5 border-2 border-meadow shadow-toy transition-all duration-300">
+              <div class="flex items-start gap-2.5">
+                <span id="explore-toast-icon" class="text-xl">🌱</span>
+                <div>
+                  <h4 id="explore-toast-title" class="text-xs sm:text-sm font-bold text-ink">歡迎來到雲丘 3D 小農場！</h4>
+                  <p id="explore-toast-desc" class="text-xs text-inkLight mt-0.5 leading-relaxed">
+                    試著拖曳旋轉視角，或直接點擊場上的動物、小木屋、穀倉、菜園與森林亮點！
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Control Hint Pill -->
+            <div class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-[92%] sm:w-auto text-center px-4 py-1.5 rounded-full bg-creamLight/90 backdrop-blur-sm border border-wood/30 text-[11px] sm:text-xs font-medium text-ink shadow-sm">
+              🖱️ 拖曳旋轉農場 · 滾輪縮放 · 點擊動物與建築互動
+            </div>
+          </div>
+
+          <!-- Quick Zone Camera Focus Bar -->
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 px-1">
+            <span class="text-xs font-bold text-woodDark">鏡頭導覽：</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="focusExploreZone('overview')" class="px-3 py-1 rounded-full bg-cream hover:bg-sprout text-xs font-medium text-ink border border-wood/25 transition-colors">🏞️ 全景</button>
+              <button type="button" onclick="focusExploreZone('cabin')" class="px-3 py-1 rounded-full bg-cream hover:bg-sprout text-xs font-medium text-ink border border-wood/25 transition-colors">🏡 小木屋</button>
+              <button type="button" onclick="focusExploreZone('barn')" class="px-3 py-1 rounded-full bg-cream hover:bg-sprout text-xs font-medium text-ink border border-wood/25 transition-colors">🐄 穀倉</button>
+              <button type="button" onclick="focusExploreZone('garden')" class="px-3 py-1 rounded-full bg-cream hover:bg-sprout text-xs font-medium text-ink border border-wood/25 transition-colors">🥕 菜園</button>
+              <button type="button" onclick="focusExploreZone('lake')" class="px-3 py-1 rounded-full bg-cream hover:bg-sprout text-xs font-medium text-ink border border-wood/25 transition-colors">💧 湖畔</button>
+              <button type="button" onclick="focusExploreZone('forest')" class="px-3 py-1 rounded-full bg-cream hover:bg-sprout text-xs font-medium text-ink border border-wood/25 transition-colors">🌲 森林</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT / BOTTOM: Playable Farm Daily Life Control Panel (5 cols) -->
+        <div class="lg:col-span-5 bg-creamLight rounded-3xl border-2 border-wood/35 shadow-toy overflow-hidden">
+          <!-- 4 Interactive Mode Tabs -->
+          <div class="grid grid-cols-4 bg-cream border-b border-wood/25 p-1.5 gap-1">
+            <button type="button" onclick="switchExploreTab('care')" data-tab-btn="care"
+              class="explore-tab-btn py-2.5 px-2 rounded-2xl text-xs font-bold bg-meadow text-ink shadow-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1">
+              <span>🐾</span><span>動物照顧</span>
+            </button>
+            <button type="button" onclick="switchExploreTab('garden')" data-tab-btn="garden"
+              class="explore-tab-btn py-2.5 px-2 rounded-2xl text-xs font-bold text-inkLight hover:bg-sprout/50 transition-all flex flex-col sm:flex-row items-center justify-center gap-1">
+              <span>🥕</span><span>小小菜園</span>
+            </button>
+            <button type="button" onclick="switchExploreTab('decor')" data-tab-btn="decor"
+              class="explore-tab-btn py-2.5 px-2 rounded-2xl text-xs font-bold text-inkLight hover:bg-sprout/50 transition-all flex flex-col sm:flex-row items-center justify-center gap-1">
+              <span>🏡</span><span>農場佈置</span>
+            </button>
+            <button type="button" onclick="switchExploreTab('diary')" data-tab-btn="diary"
+              class="explore-tab-btn py-2.5 px-2 rounded-2xl text-xs font-bold text-inkLight hover:bg-sprout/50 transition-all flex flex-col sm:flex-row items-center justify-center gap-1">
+              <span>📖</span><span>生活日記</span>
+            </button>
+          </div>
+
+          <!-- TAB 1: ANIMAL CARE (動物照顧) -->
+          <div id="tab-panel-care" class="explore-tab-panel p-5 sm:p-6 space-y-5">
+            <div>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-ink">陪伴你的動物夥伴</h3>
+                <span class="text-xs px-2.5 py-1 rounded-full bg-sprout/70 text-ink font-medium">無壓力自由互動</span>
+              </div>
+              <p class="text-xs text-inkLight mt-1">選擇一位動物朋友並進行互動，3D 場景中的牠會立刻做出可愛回應！</p>
+            </div>
+
+            <!-- Animal Quick Selector Pills -->
+            <div id="care-animal-selector" class="grid grid-cols-5 gap-1.5">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Active Animal Care Card -->
+            <div class="bg-cream/90 rounded-2xl p-4 border border-wood/25">
+              <div class="flex items-center gap-3">
+                <div id="care-animal-avatar" class="w-12 h-12 rounded-2xl bg-softPink flex items-center justify-center text-2xl shadow-sm">
+                  🐰
+                </div>
+                <div>
+                  <h4 id="care-animal-name" class="font-bold text-base text-ink">棉球 Cotton（兔子）</h4>
+                  <p id="care-animal-mood" class="text-xs text-forest font-medium">目前狀態：正在菜園邊輕輕嗅著小花</p>
+                </div>
+              </div>
+
+              <!-- 5 Care Action Buttons -->
+              <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button type="button" onclick="performAnimalCare('feed')"
+                  class="btn-toy px-3 py-2.5 rounded-xl bg-meadow hover:bg-forest text-ink hover:text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5">
+                  <span>🥬</span><span id="care-feed-label">餵食胡蘿蔔</span>
+                </button>
+                <button type="button" onclick="performAnimalCare('pet')"
+                  class="btn-toy px-3 py-2.5 rounded-xl bg-softPink/80 hover:bg-softPink text-ink font-bold text-xs shadow-sm flex items-center justify-center gap-1.5">
+                  <span>🤍</span><span>溫柔撫摸</span>
+                </button>
+                <button type="button" onclick="performAnimalCare('brush')"
+                  class="btn-toy px-3 py-2.5 rounded-xl bg-softOrange/80 hover:bg-softOrange text-ink font-bold text-xs shadow-sm flex items-center justify-center gap-1.5">
+                  <span>🪮</span><span>細心梳毛</span>
+                </button>
+                <button type="button" onclick="performAnimalCare('walk')"
+                  class="btn-toy px-3 py-2.5 rounded-xl bg-sky/45 hover:bg-sky/75 text-ink font-bold text-xs shadow-sm flex items-center justify-center gap-1.5">
+                  <span>🐾</span><span>陪伴散步</span>
+                </button>
+                <button type="button" onclick="performAnimalCare('observe')"
+                  class="btn-toy col-span-2 sm:col-span-2 px-3 py-2.5 rounded-xl bg-creamLight hover:bg-sprout/60 text-ink border border-wood/30 font-bold text-xs shadow-sm flex items-center justify-center gap-1.5">
+                  <span>👀</span><span>靜靜觀察牠的日常</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Warm Interaction Feedback Log -->
+            <div id="care-feedback-box" class="bg-sprout/45 rounded-2xl p-4 border border-meadow text-xs sm:text-sm text-ink leading-relaxed">
+              ✨ 點擊上方按鈕，與棉球共享一段悠閒的農場時光吧！
+            </div>
+          </div>
+
+          <!-- TAB 2: FARM GARDENING (小小菜園) -->
+          <div id="tab-panel-garden" class="explore-tab-panel hidden p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-ink">療癒小小菜園</h3>
+                <p class="text-xs text-inkLight mt-0.5">選擇種子 → 點擊農地播種 → 澆水長大 → 開心採收（作物永不枯萎！）</p>
+              </div>
+              <button type="button" onclick="waterAllPlots()"
+                class="btn-toy px-3 py-1.5 rounded-full bg-sky/50 hover:bg-sky/80 text-ink font-bold text-xs shadow-sm">
+                💧 全部澆水
+              </button>
+            </div>
+
+            <!-- Seed Selector -->
+            <div>
+              <span class="text-xs font-bold text-woodDark block mb-2">1. 選擇要播種的作物：</span>
+              <div id="seed-selector-grid" class="grid grid-cols-5 gap-1.5">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- 6 Interactive Garden Plots (Synced with 3D Scene!) -->
+            <div>
+              <span class="text-xs font-bold text-woodDark block mb-2">2. 點擊田地操作（播種 / 澆水 / 採收）：</span>
+              <div id="garden-plots-grid" class="grid grid-cols-3 gap-2.5">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Harvested Basket Summary -->
+            <div class="bg-cream/90 rounded-2xl p-3.5 border border-wood/25 flex items-center justify-between">
+              <span class="text-xs font-bold text-woodDark">🧺 收成籃收藏：</span>
+              <div id="harvest-basket-pills" class="flex flex-wrap gap-1.5 text-xs font-bold text-ink">
+                <span class="text-inkLight font-normal">尚未採收，快試著種一株吧！</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: FARM DECORATION (農場佈置) -->
+          <div id="tab-panel-decor" class="explore-tab-panel hidden p-5 sm:p-6 space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-ink">自由佈置雲丘庭院</h3>
+              <p class="text-xs text-inkLight mt-1">開啟或收起以下農場裝飾，左側的 3D 雲丘場景會即時變化！</p>
+            </div>
+
+            <div id="decor-items-grid" class="grid grid-cols-2 gap-2.5">
+              <!-- Populated by JS -->
+            </div>
+
+            <div class="bg-softOrange/35 rounded-2xl p-3.5 border border-wood/25 text-xs text-ink leading-relaxed">
+              💡 小提示：搭配右側「秋夕」或「星夜」氛圍並點亮「復古路燈」，農場會散發出格外溫暖的童話氣息喔！
+            </div>
+          </div>
+
+          <!-- TAB 4: FARM DIARY & TREASURES (農場生活日記 & 探索圖鑑) -->
+          <div id="tab-panel-diary" class="explore-tab-panel hidden p-5 sm:p-6 space-y-4 max-h-[520px] overflow-y-auto">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-bold text-ink">雲丘生活日記</h3>
+                <p class="text-xs text-inkLight mt-0.5">與動物互動、種植作物或在 3D 場景尋找隱藏小物即可解鎖回憶！</p>
+              </div>
+              <span id="diary-progress-badge" class="px-3 py-1 rounded-full bg-meadow text-ink font-display font-bold text-xs">
+                2 / 8
+              </span>
+            </div>
+
+            <!-- 4 Hidden Treasures Checklist -->
+            <div class="bg-cream/90 rounded-2xl p-3.5 border border-wood/25">
+              <h4 class="text-xs font-bold text-woodDark mb-2">🔍 3D 場景隱藏自然小物（點擊 3D 場景中的發光小物收集）</h4>
+              <div id="treasures-grid" class="grid grid-cols-2 gap-2">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Animal Memories Cards -->
+            <div class="space-y-2.5" id="diary-memories-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       06｜ENDING SECTION — 黃昏時刻的溫暖結尾
+       ========================================================= -->
+  <section id="ending" class="relative py-24 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-b from-cream via-[#F5D6BA] to-[#E6B89C] border-t border-wood/30">
+    <!-- Decorative Sunset Low Poly Hills & Glowing Cabin SVG Backdrop -->
+    <div class="pointer-events-none absolute inset-x-0 bottom-0 z-0 opacity-90">
+      <svg viewBox="0 0 1440 320" class="w-full h-auto block" preserveAspectRatio="none">
+        <!-- Warm Sunset Glow -->
+        <circle cx="720" cy="140" r="130" fill="#FFF1C9" opacity="0.65"/>
+        <!-- Distant Dusk Hills -->
+        <polygon points="0,240 320,120 680,235 1040,115 1440,220 1440,320 0,320" fill="#B5987E"/>
+        <!-- Foreground Meadow Silhouette -->
+        <polygon points="0,260 480,195 980,235 1440,185 1440,320 0,320" fill="#7D8F69"/>
+        <!-- Cozy Cabin with Lit Windows -->
+        <g transform="translate(655, 148)">
+          <polygon points="0,42 86,42 86,88 0,88" fill="#8C6749"/>
+          <polygon points="-12,42 43,4 98,42" fill="#5C4738"/>
+          <rect x="14" y="54" width="16" height="16" fill="#FFE699"/>
+          <rect x="56" y="54" width="16" height="16" fill="#FFE699"/>
+        </g>
+        <!-- Five Friends Gathered Together -->
+        <circle cx="615" cy="230" r="10" fill="#FAF5E8"/>
+        <circle cx="638" cy="232" r="8" fill="#EDC5A8"/>
+        <ellipse cx="775" cy="226" rx="18" ry="12" fill="#FAF5E8"/>
+        <circle cx="812" cy="228" r="13" fill="#FFFFFF"/>
+        <circle cx="842" cy="233" r="7" fill="#F2C94C"/>
+      </svg>
+    </div>
+
+    <div class="relative z-10 max-w-3xl mx-auto text-center reveal-item">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-creamLight/90 text-woodDark font-display font-bold text-xs tracking-widest shadow-sm mb-4">
+        EVERY DAY IS A GOOD DAY.
+      </span>
+
+      <h2 class="text-3xl sm:text-5xl font-bold text-ink leading-tight">
+        慢一點也沒關係，<br class="sm:hidden" />生活本來就很美好。
+      </h2>
+
+      <p class="mt-6 text-base sm:text-lg text-ink/90 leading-relaxed bg-creamLight/85 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-wood/30 shadow-toy">
+        謝謝你來到雲丘。<br />
+        希望這座小小的農場，能成為你心中一個溫暖的地方。<br />
+        無論什麼時候，都歡迎回來看看你的動物朋友。
+      </p>
+
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#explore"
+          class="btn-toy px-8 py-4 rounded-full bg-meadow hover:bg-forest text-ink hover:text-white font-display font-bold text-base shadow-toy flex items-center gap-2">
+          <span>🌻 再次探索農場</span>
+        </a>
+        <a href="#home"
+          class="btn-toy px-7 py-4 rounded-full bg-creamLight/95 hover:bg-cream text-ink border border-wood/40 font-display font-bold text-sm shadow-sm">
+          ↑ 回到雲丘山頂
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       FOOTER
+       ========================================================= -->
+  <footer class="bg-ink text-creamLight py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-meadow flex items-center justify-center text-ink font-display font-bold text-lg">
+          ☁️
+        </div>
+        <div>
+          <span class="font-display font-bold text-lg tracking-wider block">CLOUDHILL FARM｜雲丘小農場</span>
+          <span class="text-xs text-sprout">A LITTLE FARM, A LITTLE HAPPINESS. 有動物陪伴的日子，就是最好的農場生活。</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-5 text-xs font-display font-semibold tracking-wider text-cream/85">
+        <a href="#home" class="hover:text-meadow transition-colors">HOME</a>
+        <a href="#world" class="hover:text-meadow transition-colors">WORLD</a>
+        <a href="#friends" class="hover:text-meadow transition-colors">FRIENDS</a>
+        <a href="#story" class="hover:text-meadow transition-colors">STORY</a>
+        <a href="#explore" class="hover:text-meadow transition-colors">EXPLORE</a>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+          class="px-4 py-2 rounded-full bg-creamLight/10 hover:bg-meadow hover:text-ink text-xs font-bold transition-colors">
+          ↑ 返回頂部
+        </button>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto mt-8 pt-6 border-t border-creamLight/15 text-center text-xs text-cream/60">
+      © 2026 CLOUDHILL FARM 雲丘小農場. Original Cozy Low Poly Interactive World.
+    </div>
+  </footer>
+
+  <!-- =========================================================
+       APPLICATION LOGIC: DATA, AUDIO, 3D LOW POLY ENGINE & GAMEPLAY
+       ========================================================= -->
+  <script>
+    /* ===========================================================
+       1. CENTRALIZED GAME DATA (ANIMALS, ZONES, CROPS, DECOR, DIARY)
+       =========================================================== */
+    const ANIMALS_DATA = [
+      {
+        id: 'cotton',
+        number: '01',
+        name: '棉球 Cotton',
+        shortName: '棉球',
+        species: '兔子',
+        emoji: '🐰',
+        colorHex: '#FAF5E8',
+        accentHex: '#E9D9DC',
+        role: '小小菜園的細心園丁',
+        personality: '害羞、細心、喜歡花草',
+        likes: '胡蘿蔔、花朵、柔軟草地',
+        feedItem: '餵食胡蘿蔔',
+        story: '棉球是最早搬進雲丘菜園的小居民。牠總會在清晨露水還沒乾的時候，用粉色小鼻子輕輕檢查每一株嫩芽，確保每朵小花都有好好長大。',
+        interactions: ['餵食胡蘿蔔', '溫柔撫摸', '陪牠種花', '觀察花園跳躍'],
+        dialogues: [
+          '「今天花園裡好像又長出了新的小花呢！」',
+          '「那個……這根胡蘿蔔看起來好甜，謝謝你分給我。」',
+          '「微風吹過葉子的聲音，聽起來就像搖籃曲一樣。」',
+          '「只要有你陪在菜園旁邊，我就一點也不害羞了！」'
+        ],
+        careResponses: {
+          feed: '棉球抱著鮮脆的胡蘿蔔，開心地在草地上跳了兩下！',
+          pet: '棉球害羞地垂下長耳朵，輕輕蹭了蹭你的掌心。',
+          brush: '梳理過後的白色絨毛變得像雲朵一樣蓬鬆柔軟！',
+          walk: '棉球一蹦一跳地跟在你身旁，還順路聞了三朵小野花。',
+          observe: '棉球正用前爪整理長耳朵，偶爾好奇地張望著菜園。'
+        },
+        memoryId: 'mem_cotton'
+      },
+      {
+        id: 'butter',
+        number: '02',
+        name: '奶油 Butter',
+        shortName: '奶油',
+        species: '乳牛',
+        emoji: '🐄',
+        colorHex: '#F4E9D1',
+        accentHex: '#DDAE83',
+        role: '草坡上最溫柔的慢活夥伴',
+        personality: '溫柔、慢熟、喜歡曬太陽',
+        likes: '牧草、鮮嫩蔬菜、陽光',
+        feedItem: '餵食鮮嫩牧草',
+        story: '奶油是農場裡最沉穩溫柔的大夥伴。牠從不著急趕路，最喜歡在陽光灑落的草地上慢慢咀嚼牧草，用溫暖的眼神守護著所有小動物。',
+        interactions: ['餵食牧草', '梳毛', '撫摸額頭', '陪伴散步'],
+        dialogues: [
+          '「在草地上曬太陽，真的是最舒服的事情。」',
+          '「哞～不用著急，今天的雲朵也走得很慢呢。」',
+          '「剛收成的鮮嫩蔬菜葉，聞起來有陽光的味道。」',
+          '「靠在我旁邊休息一下吧，這裡的風很涼爽喔。」'
+        ],
+        careResponses: {
+          feed: '奶油滿足地嚼著鮮嫩牧草，尾巴開心地左右搖擺！',
+          pet: '奶油舒服地瞇起了大眼睛，發出一聲溫柔的「哞～」。',
+          brush: '幫奶油梳好背上的棕色斑點毛髮，牠看起來神清氣爽！',
+          walk: '你和奶油並肩在湖畔草地慢慢散步，時間彷彿都慢了下來。',
+          observe: '奶油正靜靜地趴在暖陽下，看著天空飄過的棉花糖雲朵。'
+        },
+        memoryId: 'mem_butter'
+      },
+      {
+        id: 'chippy',
+        number: '03',
+        name: '啾啾 Chippy',
+        shortName: '啾啾',
+        species: '小雞',
+        emoji: '🐥',
+        colorHex: '#F6DF8B',
+        accentHex: '#EDC5A8',
+        role: '好奇心滿滿的小小探險家',
+        personality: '活潑、好奇、喜歡探索',
+        likes: '穀物、小石頭、探索',
+        feedItem: '餵食金黃穀物',
+        story: '圓滾滾的啾啾每天都充滿活力！牠喜歡在農場的每個角落尋找亮晶晶的小石頭與掉落的松果，是帶領大家發現新驚喜的開心果。',
+        interactions: ['餵食穀物', '尋找隱藏物品', '點擊觸發跳躍', '觀察四處走動'],
+        dialogues: [
+          '「啾啾！今天要不要陪我去探索？」',
+          '「我剛剛在森林邊緣看到一顆會發光的小石頭喔！」',
+          '「撲通撲通！雖然翅膀短短的，但我跳得很高吧！」',
+          '「有新朋友一起探險，雲丘變得比以前熱鬧好多！」'
+        ],
+        careResponses: {
+          feed: '啾啾開心地啄著金黃穀物，拍動短短的小翅膀跳了起來！',
+          pet: '撫摸啾啾圓滾滾的頭頂時，牠開心地左右晃動身體！',
+          brush: '用小刷子輕輕整理淡黃色羽毛，啾啾變得更加蓬鬆圓潤！',
+          walk: '啾啾在前面帶路，每走三步就會回頭「啾啾」叫你跟上！',
+          observe: '啾啾正歪著頭盯著草葉上的露珠，看起來正計畫下一場探險。'
+        },
+        memoryId: 'mem_chippy'
+      },
+      {
+        id: 'snowy',
+        number: '04',
+        name: '雪球 Snowy',
+        shortName: '雪球',
+        species: '綿羊',
+        emoji: '🐑',
+        colorHex: '#FFFFFF',
+        accentHex: '#E9D9DC',
+        role: '穀倉旁的雲朵午睡大師',
+        personality: '溫和、懶洋洋、喜歡睡覺',
+        likes: '牧草、陽光、安靜的環境',
+        feedItem: '餵食香甜三葉草',
+        story: '雪球擁有一身像剛出爐棉花糖般蓬鬆的白羊毛。牠最喜歡待在穀倉旁的樹蔭下打盹，只要靠近牠，就能感受到一股令人安心的暖意。',
+        interactions: ['梳理蓬鬆羊毛', '餵食牧草', '輕柔撫摸', '陪牠散步'],
+        dialogues: [
+          '「今天也想在草地上睡個午覺……咩～」',
+          '「風吹過樹葉沙沙響的時候，最容易做甜甜的夢了。」',
+          '「我的羊毛是不是很軟？歡迎靠著休息一下喔。」',
+          '「安安靜靜地待在一起，就覺得好幸福呀。」'
+        ],
+        careResponses: {
+          feed: '雪球慢條斯理地吃著三葉草，幸福地晃了晃小耳朵。',
+          pet: '你的手掌陷進雪球超蓬鬆的羊毛裡，牠發出滿足的呼嚕聲。',
+          brush: '細心梳理後，雪球的羊毛閃耀著像雲朵般的柔和光澤！',
+          walk: '雪球跟著你走了幾步，便在樹蔭下找了塊舒服的草皮坐下。',
+          observe: '雪球正閉著眼睛點頭打瞌睡，嘴角還帶著甜甜的微笑。'
+        },
+        memoryId: 'mem_snowy'
+      },
+      {
+        id: 'tangy',
+        number: '05',
+        name: '橘子 Tangy',
+        shortName: '橘子',
+        species: '貓咪',
+        emoji: '🐱',
+        colorHex: '#EDC5A8',
+        accentHex: '#A9C99B',
+        role: '小木屋的聰明小管家',
+        personality: '聰明、慵懶、有點調皮',
+        likes: '小魚、陽光、紙箱',
+        feedItem: '餵食香烤小魚乾',
+        story: '橘子總是以優雅的坐姿守在小木屋門廊前。別看牠一副慵懶曬太陽的模樣，其實牠對農場的每個秘密角落瞭若指掌，偶爾還會偷偷叼回隱藏小物送給你。',
+        interactions: ['摸摸頭', '玩逗貓遊戲', '跟隨玩家探索', '提供探索提示'],
+        dialogues: [
+          '「喵～我好像發現了一個有趣的地方！」',
+          '「小木屋門口的陽光角度剛剛好，你要不要也坐下？」',
+          '「森林小徑的樹下似乎藏著閃閃發亮的小東西喔，喵～」',
+          '「既然你這麼用心照顧大家，本管家就勉為其難陪你散步吧！」'
+        ],
+        careResponses: {
+          feed: '橘子優雅地享用香烤小魚乾，綠眼睛閃過一絲滿足的光芒！',
+          pet: '摸摸橘子的頭頂與下巴，牠立刻發出呼嚕呼嚕的療癒聲音。',
+          brush: '幫橘子理順柔和的橘色毛髮，牠得意地翹起了尾巴尖！',
+          walk: '橘子輕巧地走在木柵欄與小徑旁，時不時回頭給你探索提示。',
+          observe: '橘子正端坐在小木屋前舔著爪子，綠眼睛敏銳地觀察著四周。'
+        },
+        memoryId: 'mem_tangy'
+      }
+    ];
+
+    const FARM_ZONES_DATA = {
+      cabin: {
+        id: 'cabin',
+        en: 'COZY CABIN',
+        title: '小木屋',
+        subtitle: '溫暖壁爐與農場生活日記的起點',
+        icon: '🏡',
+        iconBg: 'bg-softOrange/60',
+        resident: '常駐夥伴：橘子 Tangy',
+        desc: '玩家的主要居住空間，由溫潤的雲丘原木搭建而成。屋內擺放著柔軟的編織地毯、壁爐與木製書桌，在這裡可以翻閱農場生活日記、整理收集到的自然小物，也能隨時小憩片刻。',
+        activities: [
+          '查看與動物夥伴解鎖的生活回憶日記',
+          '陪小管家橘子在門廊曬太陽與玩逗貓草',
+          '點亮壁爐燈火，感受傍晚最溫暖的歸屬感'
+        ]
+      },
+      barn: {
+        id: 'barn',
+        en: 'ANIMAL BARN',
+        title: '動物穀倉',
+        subtitle: '牧草香氣與夥伴們安心休憩的家',
+        icon: '🐄',
+        iconBg: 'bg-softPink/70',
+        resident: '常駐夥伴：奶油 Butter & 雪球 Snowy',
+        desc: '紅瓦木樑的穀倉旁連接著寬闊的圍欄草坡，堆放著金黃乾燥的牧草捲。奶油與雪球最喜歡在這裡曬太陽、梳毛與聊天，氣氛總是悠閒又祥和。',
+        activities: [
+          '為奶油與雪球梳理蓬鬆毛髮、餵食鮮嫩牧草',
+          '倚靠在木製圍欄旁聆聽微風與風車轉動聲',
+          '在樹蔭下與綿羊雪球一起享受午後小憩'
+        ]
+      },
+      garden: {
+        id: 'garden',
+        en: 'LITTLE GARDEN',
+        title: '小小菜園',
+        subtitle: '沒有時間限制的快樂耕作角落',
+        icon: '🥕',
+        iconBg: 'bg-sprout/80',
+        resident: '常駐夥伴：棉球 Cotton',
+        desc: '由六座木框花圃組成的小小菜園，可以自由種植胡蘿蔔、番茄、草莓、南瓜與向日葵。這裡的作物永遠不會枯萎，兔子棉球也會一直陪在你身邊照看嫩芽。',
+        activities: [
+          '自由播種五種可愛的低多邊形蔬果與花卉',
+          '體驗澆水、萌芽到豐收的完整療癒過程',
+          '將剛採收的胡蘿蔔分享給害羞的棉球'
+        ]
+      },
+      lake: {
+        id: 'lake',
+        en: 'LAKESIDE MEADOW',
+        title: '湖畔草地',
+        subtitle: '清澈水波、野餐墊與微風吹拂的午後',
+        icon: '💧',
+        iconBg: 'bg-sky/45',
+        resident: '常駐夥伴：啾啾 Chippy & 奶油 Butter',
+        desc: '天空藍的幾何小湖泊映照著白雲與山丘，湖畔延伸出木製小棧道與野餐草地。水面上漂浮著翠綠睡蓮，適合發呆、聽流水聲或舉辦小型草地野餐。',
+        activities: [
+          '在湖畔木棧道欣賞水波與白雲倒影',
+          '於粉嫩野餐墊上與動物夥伴度過悠閒下午',
+          '在湖邊蘆葦叢尋找閃亮的星光鵝卵石'
+        ]
+      },
+      forest: {
+        id: 'forest',
+        en: 'FOREST TRAIL',
+        title: '森林小徑',
+        subtitle: '藏著藍蝴蝶與發光蘑菇的秘境步道',
+        icon: '🌲',
+        iconBg: 'bg-forest/35',
+        resident: '常駐夥伴：啾啾 Chippy & 橘子 Tangy',
+        desc: '多面體松樹與橡樹交織而成的靜謐森林小徑，陽光穿過樹梢灑下斑駁光影。只要細心觀察樹根與草叢，就能發現藍閃蝶、金光蘑菇等可愛的自然收藏品。',
+        activities: [
+          '跟隨小雞啾啾的腳步探索森林小徑',
+          '點擊發掘隱藏在樹林間的四種自然小物',
+          '收集自然奇遇並記錄進雲丘生活日記'
+        ]
+      }
+    };
+
+    const CROPS_DATA = [
+      { id: 'carrot', name: '胡蘿蔔', emoji: '🥕', color: '#F2994A', leaf: '#6FCF97', desc: '棉球最愛的香甜胡蘿蔔' },
+      { id: 'tomato', name: '小番茄', emoji: '🍅', color: '#EB5757', leaf: '#6FCF97', desc: '飽滿多汁的紅潤番茄' },
+      { id: 'strawberry', name: '草莓', emoji: '🍓', color: '#FF758F', leaf: '#8C9F85', desc: '散發淡淡果香的粉紅草莓' },
+      { id: 'pumpkin', name: '小南瓜', emoji: '🎃', color: '#F2994A', leaf: '#8C9F85', desc: '圓滾滾的溫暖秋日南瓜' },
+      { id: 'sunflower', name: '向日葵', emoji: '🌻', color: '#F2C94C', leaf: '#6FCF97', desc: '迎著陽光微笑的金色花朵' }
+    ];
+
+    const DECOR_DATA = [
+      { id: 'fences', name: '木製柵欄', emoji: '🪵', desc: '圍繞牧場與小徑的溫潤原木圍欄', defaultOn: true },
+      { id: 'flowers', name: '野花叢', emoji: '🌼', desc: '點綴在草坡上的粉白與金黃小花', defaultOn: true },
+      { id: 'flowerpots', name: '繽紛花盆', emoji: '🪴', desc: '擺放在小木屋門廊前的陶土花盆', defaultOn: false },
+      { id: 'lanterns', name: '復古路燈', emoji: '🏮', desc: '沿著小徑散發柔和暖光的木製提燈', defaultOn: false },
+      { id: 'bench', name: '休憩木椅', emoji: '🪑', desc: '面向湖畔草地的雙人原木長椅', defaultOn: false },
+      { id: 'stones', name: '裝飾石頭', emoji: '🪨', desc: '圓潤可愛的低多邊形溪畔鵝卵石', defaultOn: true }
+    ];
+
+    const TREASURES_DATA = [
+      { id: 'butterfly', name: '藍閃蝶', emoji: '🦋', zone: '森林小徑', hint: '停留在森林松樹旁的藍色小蝴蝶' },
+      { id: 'mushroom', name: '金光蘑菇', emoji: '🍄', zone: '森林小徑', hint: '生長在森林大樹根部的暖橘小蘑菇' },
+      { id: 'clover', name: '四葉幸運草', emoji: '🍀', zone: '小小菜園', hint: '悄悄長在菜園角落的翠綠幸運草' },
+      { id: 'pebble', name: '星光鵝卵石', emoji: '💎', zone: '湖畔草地', hint: '湖畔棧道旁閃著微光的小圓石' }
+    ];
+
+    const DIARY_MEMORIES_DATA = [
+      {
+        id: 'mem_welcome',
+        title: '抵達雲丘的第一天',
+        animal: '全體夥伴',
+        emoji: '🏡',
+        unlocked: true,
+        desc: '推開木柵欄的那一刻，微風吹動了山丘上的風車，五位動物朋友在遠處溫柔地迎接了你。'
+      },
+      {
+        id: 'mem_cotton',
+        title: '棉球第一次種出花朵',
+        animal: '棉球 Cotton',
+        emoji: '🐰',
+        unlocked: true,
+        desc: '清晨的菜園裡冒出了一朵嫩粉色的小花，棉球開心地豎起長耳朵，圍著花圃輕輕跳了一圈。'
+      },
+      {
+        id: 'mem_butter',
+        title: '奶油在草地上度過悠閒的下午',
+        animal: '奶油 Butter',
+        emoji: '🐄',
+        unlocked: false,
+        desc: '陽光把草地曬得暖烘烘的，奶油舒服地瞇起眼睛，陪你一起看著白雲慢慢飄過山頭。'
+      },
+      {
+        id: 'mem_chippy',
+        title: '啾啾發現森林裡的小石頭',
+        animal: '啾啾 Chippy',
+        emoji: '🐥',
+        unlocked: false,
+        desc: '活潑的啾啾在森林小徑邊拍著小翅膀，興奮地向你展示牠找到的亮晶晶小石頭！'
+      },
+      {
+        id: 'mem_snowy',
+        title: '雪球在樹下睡著',
+        animal: '雪球 Snowy',
+        emoji: '🐑',
+        unlocked: false,
+        desc: '梳理完蓬鬆的羊毛後，雪球靠在穀倉旁的樹蔭下發出輕柔的呼嚕聲，做了一個甜甜的午睡夢。'
+      },
+      {
+        id: 'mem_tangy',
+        title: '橘子找到農場裡的隱藏物品',
+        animal: '橘子 Tangy',
+        emoji: '🐱',
+        unlocked: false,
+        desc: '聰明的小管家橘子搖著尾巴帶路，幫你在雲丘的角落裡發現了閃閃發光的自然小物。'
+      },
+      {
+        id: 'mem_harvest',
+        title: '小小菜園的第一次豐收',
+        animal: '小小菜園',
+        emoji: '🧺',
+        unlocked: false,
+        desc: '親手播種並澆水照料的作物終於成熟了！滿滿一籃新鮮蔬果，讓整個農場充滿豐收的喜悅。'
+      },
+      {
+        id: 'mem_decor',
+        title: '點亮雲丘的溫暖風景',
+        animal: '農場佈置',
+        emoji: '🏮',
+        unlocked: false,
+        desc: '親手擺上花盆、木椅與溫暖路燈後，整座雲丘小農場變得更加像家一樣溫馨。'
+      }
+    ];
+
+    /* ===========================================================
+       2. PROCEDURAL WEB AUDIO SOUND ENGINE (NO EXTERNAL URLS)
+       =========================================================== */
+    class CozySoundEngine {
+      constructor() {
+        this.enabled = false;
+        this.ctx = null;
+        this.bgmInterval = null;
+        this.birdInterval = null;
+        this.stepIndex = 0;
+        // Gentle C Major Pentatonic Lullaby Notes (Hz)
+        this.notes = [523.25, 587.33, 659.25, 783.99, 880.00, 659.25, 587.33, 523.25];
+      }
+
+      initContext() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled) {
+          this.initContext();
+          this.startAmbience();
+          this.playChime(659.25, 0.25);
+        } else {
+          this.stopAmbience();
+        }
+        return this.enabled;
+      }
+
+      startAmbience() {
+        this.stopAmbience();
+        // Gentle kalimba / music-box background melody every 1.4s
+        this.bgmInterval = setInterval(() => {
+          if (!this.enabled || !this.ctx) return;
+          const freq = this.notes[this.stepIndex % this.notes.length];
+          this.stepIndex++;
+          this.playPluck(freq, 0.035, 1.1);
+        }, 1450);
+
+        // Occasional soft bird chirp every 5.5s
+        this.birdInterval = setInterval(() => {
+          if (!this.enabled || !this.ctx) return;
+          this.playBirdChirp();
+        }, 5600);
+      }
+
+      stopAmbience() {
+        if (this.bgmInterval) clearInterval(this.bgmInterval);
+        if (this.birdInterval) clearInterval(this.birdInterval);
+        this.bgmInterval = null;
+        this.birdInterval = null;
+      }
+
+      playPluck(freq, gainLevel = 0.06, duration = 0.6) {
+        if (!this.enabled) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(gainLevel, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.05);
+      }
+
+      playChime(baseFreq = 587.33, duration = 0.35) {
+        if (!this.enabled) return;
+        this.playPluck(baseFreq, 0.07, duration);
+        setTimeout(() => this.playPluck(baseFreq * 1.25, 0.06, duration * 1.2), 90);
+      }
+
+      playBirdChirp() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1750, now);
+        osc.frequency.exponentialRampToValueAtTime(2450, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(1950, now + 0.16);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.025, now + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+
+      playAnimalVoice(animalId) {
+        if (!this.enabled) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        if (animalId === 'cotton') {
+          // Cute soft high squeak
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(720, now);
+          osc.frequency.exponentialRampToValueAtTime(980, now + 0.12);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.06, now + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.2);
+        } else if (animalId === 'butter') {
+          // Warm gentle low moo
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(155, now);
+          osc.frequency.linearRampToValueAtTime(135, now + 0.45);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.08, now + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.52);
+        } else if (animalId === 'chippy') {
+          // Double peep-peep
+          this.playPluck(1320, 0.06, 0.12);
+          setTimeout(() => this.playPluck(1480, 0.06, 0.14), 110);
+        } else if (animalId === 'snowy') {
+          // Gentle soft baa
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(290, now);
+          osc.frequency.linearRampToValueAtTime(255, now + 0.35);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.065, now + 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.4);
+        } else if (animalId === 'tangy') {
+          // Playful rising meow
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(460, now);
+          osc.frequency.exponentialRampToValueAtTime(690, now + 0.16);
+          osc.frequency.exponentialRampToValueAtTime(520, now + 0.34);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(0.065, now + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.38);
+        }
+      }
+    }
+
+    const soundEngine = new CozySoundEngine();
+
+    /* ===========================================================
+       3. LOW POLY 3D GEOMETRY FACTORY (THREE.JS)
+       =========================================================== */
+    const LowPolyFactory = {
+      mat(colorHex, options = {}) {
+        return new THREE.MeshStandardMaterial({
+          color: colorHex,
+          flatShading: true,
+          roughness: options.roughness ?? 0.82,
+          metalness: options.metalness ?? 0.04,
+          emissive: options.emissive ?? 0x000000,
+          emissiveIntensity: options.emissiveIntensity ?? 0,
+          transparent: options.transparent ?? false,
+          opacity: options.opacity ?? 1
+        });
+      },
+
+      // Create Original Low Poly 3D Animal Mesh Group
+      createAnimal(id) {
+        const group = new THREE.Group();
+        group.userData = { type: 'animal', id };
+
+        if (id === 'cotton') {
+          // Cotton the Rabbit
+          const whiteMat = this.mat(0xFAF5E8);
+          const pinkMat = this.mat(0xF3B6C2);
+          const eyeMat = this.mat(0x3D322C);
+
+          const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.62, 1), whiteMat);
+          body.scale.set(0.95, 1.05, 1.1);
+          body.position.y = 0.62;
+          body.castShadow = true;
+          group.add(body);
+
+          const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.46, 1), whiteMat);
+          head.position.set(0, 1.25, 0.25);
+          head.castShadow = true;
+          group.add(head);
+
+          // Long Ears
+          const earGeo = new THREE.ConeGeometry(0.14, 0.72, 6);
+          const earL = new THREE.Mesh(earGeo, whiteMat);
+          earL.position.set(-0.18, 1.82, 0.18);
+          earL.rotation.set(-0.15, 0, 0.14);
+          earL.castShadow = true;
+          group.add(earL);
+
+          const earR = new THREE.Mesh(earGeo, whiteMat);
+          earR.position.set(0.18, 1.82, 0.18);
+          earR.rotation.set(-0.15, 0, -0.14);
+          earR.castShadow = true;
+          group.add(earR);
+
+          // Pink Nose & Eyes
+          const nose = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), pinkMat);
+          nose.position.set(0, 1.24, 0.69);
+          group.add(nose);
+
+          const eyeGeo = new THREE.OctahedronGeometry(0.06, 0);
+          const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeL.position.set(-0.2, 1.32, 0.62);
+          const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeR.position.set(0.2, 1.32, 0.62);
+          group.add(eyeL, eyeR);
+
+          // Fluffy Tail
+          const tail = new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 0), whiteMat);
+          tail.position.set(0, 0.52, -0.62);
+          group.add(tail);
+
+          group.userData.ears = [earL, earR];
+        } else if (id === 'butter') {
+          // Butter the Cow
+          const creamMat = this.mat(0xF4E9D1);
+          const brownMat = this.mat(0x8C6749);
+          const pinkMat = this.mat(0xEDC5A8);
+          const hornMat = this.mat(0xE8D8B9);
+          const eyeMat = this.mat(0x3D322C);
+
+          const body = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.95, 1.55), creamMat);
+          body.position.y = 0.85;
+          body.castShadow = true;
+          group.add(body);
+
+          // Brown Patches
+          const patch1 = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.5, 0.6), brownMat);
+          patch1.position.set(0.42, 0.95, 0.1);
+          const patch2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.45, 0.55), brownMat);
+          patch2.position.set(-0.4, 0.85, -0.35);
+          group.add(patch1, patch2);
+
+          // Head & Muzzle
+          const head = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.72, 0.75), creamMat);
+          head.position.set(0, 1.35, 0.88);
+          head.castShadow = true;
+          group.add(head);
+
+          const muzzle = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.34, 0.3), pinkMat);
+          muzzle.position.set(0, 1.16, 1.28);
+          group.add(muzzle);
+
+          // Little Horns
+          const hornGeo = new THREE.ConeGeometry(0.09, 0.28, 5);
+          const hornL = new THREE.Mesh(hornGeo, hornMat);
+          hornL.position.set(-0.26, 1.8, 0.82);
+          hornL.rotation.z = 0.25;
+          const hornR = new THREE.Mesh(hornGeo, hornMat);
+          hornR.position.set(0.26, 1.8, 0.82);
+          hornR.rotation.z = -0.25;
+          group.add(hornL, hornR);
+
+          // Eyes
+          const eyeGeo = new THREE.OctahedronGeometry(0.07, 0);
+          const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeL.position.set(-0.26, 1.44, 1.24);
+          const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeR.position.set(0.26, 1.44, 1.24);
+          group.add(eyeL, eyeR);
+
+          // 4 Legs
+          const legGeo = new THREE.BoxGeometry(0.22, 0.45, 0.22);
+          [[-0.36, 0.22, 0.5], [0.36, 0.22, 0.5], [-0.36, 0.22, -0.5], [0.36, 0.22, -0.5]].forEach(pos => {
+            const leg = new THREE.Mesh(legGeo, creamMat);
+            leg.position.set(...pos);
+            leg.castShadow = true;
+            group.add(leg);
+          });
+        } else if (id === 'chippy') {
+          // Chippy the Chick
+          const yellowMat = this.mat(0xF6DF8B);
+          const orangeMat = this.mat(0xF2994A);
+          const eyeMat = this.mat(0x3D322C);
+
+          const body = new THREE.Mesh(new THREE.DodecahedronGeometry(0.58, 1), yellowMat);
+          body.scale.set(1, 1.12, 1);
+          body.position.y = 0.65;
+          body.castShadow = true;
+          group.add(body);
+
+          // Cute Crest
+          const crest = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.28, 5), yellowMat);
+          crest.position.set(0, 1.32, 0.05);
+          crest.rotation.x = -0.2;
+          group.add(crest);
+
+          // Beak
+          const beak = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.26, 4), orangeMat);
+          beak.position.set(0, 0.78, 0.62);
+          beak.rotation.x = Math.PI / 2;
+          group.add(beak);
+
+          // Wings
+          const wingGeo = new THREE.DodecahedronGeometry(0.24, 0);
+          const wingL = new THREE.Mesh(wingGeo, yellowMat);
+          wingL.scale.set(0.45, 0.9, 1.1);
+          wingL.position.set(-0.56, 0.66, 0);
+          const wingR = new THREE.Mesh(wingGeo, yellowMat);
+          wingR.scale.set(0.45, 0.9, 1.1);
+          wingR.position.set(0.56, 0.66, 0);
+          group.add(wingL, wingR);
+
+          // Eyes
+          const eyeGeo = new THREE.OctahedronGeometry(0.06, 0);
+          const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeL.position.set(-0.22, 0.88, 0.48);
+          const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeR.position.set(0.22, 0.88, 0.48);
+          group.add(eyeL, eyeR);
+
+          // Feet
+          const footGeo = new THREE.BoxGeometry(0.18, 0.08, 0.26);
+          const footL = new THREE.Mesh(footGeo, orangeMat);
+          footL.position.set(-0.2, 0.05, 0.08);
+          const footR = new THREE.Mesh(footGeo, orangeMat);
+          footR.position.set(0.2, 0.05, 0.08);
+          group.add(footL, footR);
+
+          group.userData.wings = [wingL, wingR];
+        } else if (id === 'snowy') {
+          // Snowy the Sheep
+          const woolMat = this.mat(0xFFFFFF);
+          const faceMat = this.mat(0xE9D9DC);
+          const hoofMat = this.mat(0x6B523E);
+          const eyeMat = this.mat(0x3D322C);
+
+          // Fluffy Cloud Body built from overlapping Icosahedrons
+          const woolOffsets = [
+            [0, 0.78, 0, 0.68],
+            [-0.28, 0.82, 0.25, 0.46],
+            [0.28, 0.82, 0.25, 0.46],
+            [-0.26, 0.8, -0.28, 0.46],
+            [0.26, 0.8, -0.28, 0.46],
+            [0, 1.05, 0, 0.48]
+          ];
+          woolOffsets.forEach(([x, y, z, r]) => {
+            const puff = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), woolMat);
+            puff.position.set(x, y, z);
+            puff.castShadow = true;
+            group.add(puff);
+          });
+
+          // Pastel Pink Head & Wool Hat
+          const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.38, 1), faceMat);
+          head.position.set(0, 0.92, 0.74);
+          head.castShadow = true;
+          group.add(head);
+
+          const headWool = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32, 1), woolMat);
+          headWool.position.set(0, 1.2, 0.68);
+          group.add(headWool);
+
+          // Drooping Ears
+          const earGeo = new THREE.BoxGeometry(0.24, 0.11, 0.14);
+          const earL = new THREE.Mesh(earGeo, faceMat);
+          earL.position.set(-0.4, 0.95, 0.68);
+          earL.rotation.z = 0.35;
+          const earR = new THREE.Mesh(earGeo, faceMat);
+          earR.position.set(0.4, 0.95, 0.68);
+          earR.rotation.z = -0.35;
+          group.add(earL, earR);
+
+          // Sleepy Eyes
+          const eyeGeo = new THREE.BoxGeometry(0.11, 0.04, 0.05);
+          const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeL.position.set(-0.16, 0.96, 1.08);
+          const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+          eyeR.position.set(0.16, 0.96, 1.08);
+          group.add(eyeL, eyeR);
+
+          // Short Stubby Legs
+          const legGeo = new THREE.CylinderGeometry(0.1, 0.09, 0.38, 6);
+          [[-0.28, 0.19, 0.3], [0.28, 0.19, 0.3], [-0.28, 0.19, -0.3], [0.28, 0.19, -0.3]].forEach(pos => {
+            const leg = new THREE.Mesh(legGeo, hoofMat);
+            leg.position.set(...pos);
+            group.add(leg);
+          });
+        } else if (id === 'tangy') {
+          // Tangy the Cat (Seated Pose)
+          const orangeMat = this.mat(0xEDC5A8);
+          const creamMat = this.mat(0xFAF5E8);
+          const greenEyeMat = this.mat(0x6FCF97);
+          const noseMat = this.mat(0xE9969A);
+
+          const body = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.05, 7), orangeMat);
+          body.position.y = 0.52;
+          body.castShadow = true;
+          group.add(body);
+
+          // Cream Belly Patch
+          const belly = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32, 0), creamMat);
+          belly.scale.set(0.85, 1.2, 0.6);
+          belly.position.set(0, 0.48, 0.32);
+          group.add(belly);
+
+          // Head
+          const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.46, 1), orangeMat);
+          head.position.set(0, 1.18, 0.08);
+          head.castShadow = true;
+          group.add(head);
+
+          // Pointed Cat Ears
+          const earGeo = new THREE.ConeGeometry(0.16, 0.34, 4);
+          const earL = new THREE.Mesh(earGeo, orangeMat);
+          earL.position.set(-0.24, 1.58, 0.06);
+          earL.rotation.z = 0.2;
+          const earR = new THREE.Mesh(earGeo, orangeMat);
+          earR.position.set(0.24, 1.58, 0.06);
+          earR.rotation.z = -0.2;
+          group.add(earL, earR);
+
+          // Emerald Green Eyes & Pink Nose
+          const eyeGeo = new THREE.OctahedronGeometry(0.07, 0);
+          const eyeL = new THREE.Mesh(eyeGeo, greenEyeMat);
+          eyeL.position.set(-0.18, 1.22, 0.48);
+          const eyeR = new THREE.Mesh(eyeGeo, greenEyeMat);
+          eyeR.position.set(0.18, 1.22, 0.48);
+          const nose = new THREE.Mesh(new THREE.OctahedronGeometry(0.05, 0), noseMat);
+          nose.position.set(0, 1.12, 0.52);
+          group.add(eyeL, eyeR, nose);
+
+          // Curled Tail
+          const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.85, 6), orangeMat);
+          tail.position.set(0.38, 0.38, -0.35);
+          tail.rotation.set(-0.6, 0.3, -0.5);
+          group.add(tail);
+          group.userData.tail = tail;
+        }
+
+        return group;
+      },
+
+      // Low Poly Tree (Pine or Oak)
+      createTree(type = 'pine', foliageColor = 0x8C9F85) {
+        const tree = new THREE.Group();
+        const trunkMat = this.mat(0x8C6749);
+        const leafMat = this.mat(foliageColor);
+
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.32, 1.2, 6), trunkMat);
+        trunk.position.y = 0.6;
+        trunk.castShadow = true;
+        tree.add(trunk);
+
+        if (type === 'pine') {
+          const c1 = new THREE.Mesh(new THREE.ConeGeometry(1.15, 1.7, 6), leafMat);
+          c1.position.y = 1.8;
+          c1.castShadow = true;
+          const c2 = new THREE.Mesh(new THREE.ConeGeometry(0.85, 1.4, 6), leafMat);
+          c2.position.y = 2.75;
+          c2.castShadow = true;
+          tree.add(c1, c2);
+          tree.userData.foliageMeshes = [c1, c2];
+        } else {
+          const crown1 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.1, 1), leafMat);
+          crown1.position.y = 2.05;
+          crown1.castShadow = true;
+          const crown2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.75, 1), leafMat);
+          crown2.position.set(0.55, 1.85, 0.3);
+          crown2.castShadow = true;
+          tree.add(crown1, crown2);
+          tree.userData.foliageMeshes = [crown1, crown2];
+        }
+        return tree;
+      },
+
+      // Low Poly Cozy Cabin
+      createCabin() {
+        const cabin = new THREE.Group();
+        cabin.userData = { type: 'zone', id: 'cabin', label: '🏡 小木屋（點擊查看介紹）' };
+
+        const woodWall = this.mat(0xDDAE83);
+        const roofMat = this.mat(0x8C6749);
+        const stoneMat = this.mat(0xA69B92);
+        const doorMat = this.mat(0x6B523E);
+        const windowMat = this.mat(0xFFE699, { emissive: 0xFFB84D, emissiveIntensity: 0.45 });
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.1, 2.8), woodWall);
+        base.position.y = 1.05;
+        base.castShadow = true;
+        base.receiveShadow = true;
+        cabin.add(base);
+
+        // Pitched Roof
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(2.75, 1.65, 4), roofMat);
+        roof.position.y = 2.9;
+        roof.rotation.y = Math.PI / 4;
+        roof.castShadow = true;
+        cabin.add(roof);
+
+        // Chimney
+        const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), stoneMat);
+        chimney.position.set(0.95, 3.15, -0.4);
+        chimney.castShadow = true;
+        cabin.add(chimney);
+
+        // Door & Porch Step
+        const door = new THREE.Mesh(new THREE.BoxGeometry(0.72, 1.25, 0.15), doorMat);
+        door.position.set(0, 0.65, 1.42);
+        cabin.add(door);
+
+        const porch = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.2, 0.8), stoneMat);
+        porch.position.set(0, 0.1, 1.75);
+        cabin.add(porch);
+
+        // Warm Glowing Windows
+        const winGeo = new THREE.BoxGeometry(0.55, 0.55, 0.15);
+        const winL = new THREE.Mesh(winGeo, windowMat);
+        winL.position.set(-0.95, 1.15, 1.42);
+        const winR = new THREE.Mesh(winGeo, windowMat);
+        winR.position.set(0.95, 1.15, 1.42);
+        cabin.add(winL, winR);
+
+        cabin.userData.windowMat = windowMat;
+        return cabin;
+      },
+
+      // Low Poly Animal Barn & Windmill
+      createBarn() {
+        const barn = new THREE.Group();
+        barn.userData = { type: 'zone', id: 'barn', label: '🐄 動物穀倉（點擊查看介紹）' };
+
+        const redWood = this.mat(0xD4846A);
+        const darkRoof = this.mat(0x7A4B3A);
+        const creamTrim = this.mat(0xFAF5E8);
+        const hayMat = this.mat(0xF2C94C);
+
+        const body = new THREE.Mesh(new THREE.BoxGeometry(3.8, 2.4, 3.2), redWood);
+        body.position.y = 1.2;
+        body.castShadow = true;
+        body.receiveShadow = true;
+        barn.add(body);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(3.15, 1.75, 4), darkRoof);
+        roof.position.y = 3.25;
+        roof.rotation.y = Math.PI / 4;
+        roof.castShadow = true;
+        barn.add(roof);
+
+        // Barn Doors
+        const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(1.45, 1.65, 0.16), creamTrim);
+        doorFrame.position.set(0, 0.82, 1.62);
+        barn.add(doorFrame);
+
+        // Hay Bales beside Barn
+        const hay1 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.7, 7), hayMat);
+        hay1.rotation.z = Math.PI / 2;
+        hay1.position.set(2.45, 0.45, 0.8);
+        hay1.castShadow = true;
+        const hay2 = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.7, 7), hayMat);
+        hay2.rotation.z = Math.PI / 2;
+        hay2.position.set(2.55, 0.42, 0.0);
+        hay2.castShadow = true;
+        barn.add(hay1, hay2);
+
+        return barn;
+      },
+
+      // Rotating Low Poly Windmill
+      createWindmill() {
+        const wm = new THREE.Group();
+        const towerMat = this.mat(0xFAF5E8);
+        const woodMat = this.mat(0xDDAE83);
+        const roofMat = this.mat(0x9DC7D8);
+
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 1.05, 4.2, 6), towerMat);
+        tower.position.y = 2.1;
+        tower.castShadow = true;
+        wm.add(tower);
+
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.85, 1.1, 6), roofMat);
+        cap.position.y = 4.7;
+        cap.castShadow = true;
+        wm.add(cap);
+
+        const rotor = new THREE.Group();
+        rotor.position.set(0, 3.85, 0.82);
+
+        const hub = new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0), woodMat);
+        rotor.add(hub);
+
+        for (let i = 0; i < 4; i++) {
+          const bladePivot = new THREE.Group();
+          bladePivot.rotation.z = (Math.PI / 2) * i;
+          const spar = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.2, 0.08), woodMat);
+          spar.position.y = 1.1;
+          const sail = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.55, 0.04), towerMat);
+          sail.position.set(0.16, 1.35, 0);
+          bladePivot.add(spar, sail);
+          rotor.add(bladePivot);
+        }
+
+        wm.add(rotor);
+        wm.userData.rotor = rotor;
+        return wm;
+      },
+
+      // Low Poly Cloud
+      createCloud() {
+        const cloud = new THREE.Group();
+        const mat = this.mat(0xFAF5E8, { roughness: 0.95 });
+        const spheres = [
+          [0, 0, 0, 1.1],
+          [-0.95, -0.15, 0.1, 0.8],
+          [0.95, -0.12, -0.1, 0.85],
+          [0.35, 0.35, 0.15, 0.75]
+        ];
+        spheres.forEach(([x, y, z, r]) => {
+          const m = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 1), mat);
+          m.position.set(x, y, z);
+          cloud.add(m);
+        });
+        return cloud;
+      }
+    };
+
+    /* ===========================================================
+       4. HERO SECTION 3D SCENE (FULLSCREEN DIORAMA)
+       =========================================================== */
+    class HeroFarmScene {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.isVisible = true;
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.clock = new THREE.Clock();
+        this.animals = [];
+        this.clouds = [];
+        this.trees = [];
+
+        try {
+          this.init();
+        } catch (err) {
+          console.warn('Hero WebGL fallback:', err);
+        }
+      }
+
+      init() {
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.FogExp2(0xDCEEF3, 0.016);
+
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.camera = new THREE.PerspectiveCamera(42, rect.width / rect.height, 0.1, 150);
+        this.camera.position.set(0, 10.5, 22);
+        this.camera.lookAt(0, 1.8, 0);
+
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+        this.renderer.setSize(rect.width, rect.height);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // Warm Natural Lighting
+        const hemiLight = new THREE.HemisphereLight(0xFAF5E8, 0x8C9F85, 0.88);
+        this.scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xFFF3D6, 0.95);
+        dirLight.position.set(14, 22, 16);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        dirLight.shadow.camera.near = 2;
+        dirLight.shadow.camera.far = 60;
+        const d = 18;
+        dirLight.shadow.camera.left = -d;
+        dirLight.shadow.camera.right = d;
+        dirLight.shadow.camera.top = d;
+        dirLight.shadow.camera.bottom = -d;
+        this.scene.add(dirLight);
+
+        // Rolling Low Poly Island Terrain
+        const ground = new THREE.Mesh(
+          new THREE.CylinderGeometry(18, 16, 2.2, 12),
+          LowPolyFactory.mat(0xA9C99B)
+        );
+        ground.position.y = -1.1;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+
+        // Background Hills
+        const hill1 = new THREE.Mesh(new THREE.ConeGeometry(7.5, 6.5, 7), LowPolyFactory.mat(0x9BBF8E));
+        hill1.position.set(-9.5, 2.8, -9.5);
+        hill1.receiveShadow = true;
+        const hill2 = new THREE.Mesh(new THREE.ConeGeometry(8.5, 7.5, 7), LowPolyFactory.mat(0x8C9F85));
+        hill2.position.set(9.5, 3.2, -10.5);
+        hill2.receiveShadow = true;
+        this.scene.add(hill1, hill2);
+
+        // Cabin, Barn, Windmill
+        const cabin = LowPolyFactory.createCabin();
+        cabin.position.set(-3.8, 0, -2.2);
+        cabin.rotation.y = 0.35;
+        this.scene.add(cabin);
+
+        const barn = LowPolyFactory.createBarn();
+        barn.position.set(4.5, 0, -3.2);
+        barn.rotation.y = -0.35;
+        this.scene.add(barn);
+
+        this.windmill = LowPolyFactory.createWindmill();
+        this.windmill.position.set(8.6, 0, -5.5);
+        this.windmill.rotation.y = -0.4;
+        this.scene.add(this.windmill);
+
+        // Pond
+        const pond = new THREE.Mesh(
+          new THREE.CylinderGeometry(2.8, 2.6, 0.15, 8),
+          LowPolyFactory.mat(0x9DC7D8)
+        );
+        pond.position.set(5.2, 0.04, 4.2);
+        pond.receiveShadow = true;
+        this.scene.add(pond);
+
+        // Place All 5 Animals on the Meadow
+        const placements = [
+          { id: 'cotton', pos: [-4.5, 0, 3.8], rot: 0.4 },
+          { id: 'butter', pos: [1.5, 0, 2.5], rot: -0.3 },
+          { id: 'chippy', pos: [-1.2, 0, 5.2], rot: 0.2 },
+          { id: 'snowy', pos: [4.2, 0, 1.2], rot: -0.6 },
+          { id: 'tangy', pos: [-2.1, 0, 0.2], rot: 0.25 }
+        ];
+        placements.forEach((p, idx) => {
+          const mesh = LowPolyFactory.createAnimal(p.id);
+          mesh.position.set(...p.pos);
+          mesh.rotation.y = p.rot;
+          mesh.userData.phase = idx * 1.3;
+          this.scene.add(mesh);
+          this.animals.push(mesh);
+        });
+
+        // Trees around perimeter
+        const treeCoords = [
+          [-10, 0, -2, 'pine'], [-11, 0, 4, 'oak'], [-8, 0, 7, 'pine'],
+          [10.5, 0, 1, 'oak'], [9.5, 0, 6.5, 'pine'], [0, 0, -8.5, 'oak']
+        ];
+        treeCoords.forEach(([x, y, z, t], idx) => {
+          const tree = LowPolyFactory.createTree(t, idx % 2 === 0 ? 0x8C9F85 : 0x99BC8A);
+          tree.position.set(x, y, z);
+          tree.userData.phase = idx * 0.9;
+          this.scene.add(tree);
+          this.trees.push(tree);
+        });
+
+        // Drifting Clouds
+        [[-8, 9.5, -6], [2, 11, -8], [10, 9.2, -4]].forEach(([x, y, z], i) => {
+          const c = LowPolyFactory.createCloud();
+          c.position.set(x, y, z);
+          c.userData.speed = 0.25 + i * 0.08;
+          this.scene.add(c);
+          this.clouds.push(c);
+        });
+
+        // Mouse Parallax Listener
+        window.addEventListener('mousemove', (e) => {
+          this.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          this.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        window.addEventListener('resize', () => this.onResize());
+        this.animate();
+      }
+
+      onResize() {
+        if (!this.renderer || !this.canvas.parentElement) return;
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        this.camera.aspect = rect.width / rect.height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(rect.width, rect.height);
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        if (!this.isVisible || !this.renderer) return;
+
+        const t = this.clock.getElapsedTime();
+
+        // Windmill gentle spin
+        if (this.windmill && this.windmill.userData.rotor) {
+          this.windmill.userData.rotor.rotation.z -= 0.008;
+        }
+
+        // Clouds slow drift
+        this.clouds.forEach(c => {
+          c.position.x += c.userData.speed * 0.015;
+          if (c.position.x > 16) c.position.x = -16;
+        });
+
+        // Trees subtle breeze sway
+        this.trees.forEach(tree => {
+          tree.rotation.z = Math.sin(t * 1.1 + tree.userData.phase) * 0.025;
+        });
+
+        // Animals gentle breathing & hopping
+        this.animals.forEach(a => {
+          const phase = a.userData.phase;
+          if (a.userData.id === 'cotton' || a.userData.id === 'chippy') {
+            const hop = Math.max(0, Math.sin(t * 2.4 + phase));
+            a.position.y = Math.pow(hop, 3) * 0.28;
+          } else {
+            a.scale.y = 1 + Math.sin(t * 2 + phase) * 0.025;
+          }
+        });
+
+        // Gentle camera mouse parallax
+        const targetX = this.mouseX * 2.2;
+        const targetY = 10.5 - this.mouseY * 1.1;
+        this.camera.position.x += (targetX - this.camera.position.x) * 0.04;
+        this.camera.position.y += (targetY - this.camera.position.y) * 0.04;
+        this.camera.lookAt(0, 1.6, 0);
+
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    /* ===========================================================
+       5. CHARACTER SHOWCASE 3D TURNTABLE STAGE
+       =========================================================== */
+    class CharacterStage3D {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.currentMesh = null;
+        this.isDragging = false;
+        this.prevX = 0;
+        this.rotY = 0.45;
+        this.bounceTimer = 0;
+        this.clock = new THREE.Clock();
+
+        try {
+          this.init();
+        } catch (err) {
+          console.warn('Character Stage WebGL fallback:', err);
+        }
+      }
+
+      init() {
+        this.scene = new THREE.Scene();
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.camera = new THREE.PerspectiveCamera(38, rect.width / rect.height, 0.1, 50);
+        this.camera.position.set(0, 2.2, 4.6);
+        this.camera.lookAt(0, 0.9, 0);
+
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+        this.renderer.setSize(rect.width, rect.height);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+
+        const hemi = new THREE.HemisphereLight(0xFAF5E8, 0x8C9F85, 0.95);
+        this.scene.add(hemi);
+
+        const dir = new THREE.DirectionalLight(0xFFF6E0, 0.85);
+        dir.position.set(4, 8, 6);
+        dir.castShadow = true;
+        this.scene.add(dir);
+
+        // Cozy Low Poly Grass Pedestal
+        const pedestal = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.45, 1.25, 0.35, 9),
+          LowPolyFactory.mat(0xA9C99B)
+        );
+        pedestal.position.y = -0.18;
+        pedestal.receiveShadow = true;
+        this.scene.add(pedestal);
+
+        // Drag to Rotate Animal
+        const dom = this.canvas;
+        dom.addEventListener('mousedown', (e) => { this.isDragging = true; this.prevX = e.clientX; });
+        window.addEventListener('mouseup', () => { this.isDragging = false; });
+        window.addEventListener('mousemove', (e) => {
+          if (!this.isDragging) return;
+          this.rotY += (e.clientX - this.prevX) * 0.015;
+          this.prevX = e.clientX;
+        });
+
+        dom.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            this.isDragging = true;
+            this.prevX = e.touches[0].clientX;
+          }
+        }, { passive: true });
+        dom.addEventListener('touchmove', (e) => {
+          if (!this.isDragging || e.touches.length !== 1) return;
+          this.rotY += (e.touches[0].clientX - this.prevX) * 0.018;
+          this.prevX = e.touches[0].clientX;
+        }, { passive: true });
+        dom.addEventListener('touchend', () => { this.isDragging = false; });
+
+        window.addEventListener('resize', () => this.onResize());
+        this.setAnimal('cotton');
+        this.animate();
+      }
+
+      setAnimal(id) {
+        if (!this.scene) return;
+        if (this.currentMesh) {
+          this.scene.remove(this.currentMesh);
+        }
+        this.currentMesh = LowPolyFactory.createAnimal(id);
+        this.currentMesh.scale.set(1.25, 1.25, 1.25);
+        this.rotY = 0.42;
+        this.bounceTimer = 0.7;
+        this.scene.add(this.currentMesh);
+      }
+
+      triggerHappyBounce() {
+        this.bounceTimer = 0.95;
+      }
+
+      onResize() {
+        if (!this.renderer || !this.canvas.parentElement) return;
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        this.camera.aspect = rect.width / rect.height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(rect.width, rect.height);
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        if (!this.renderer) return;
+
+        const dt = this.clock.getDelta();
+        const t = this.clock.getElapsedTime();
+
+        if (this.currentMesh) {
+          if (!this.isDragging) {
+            this.rotY += 0.005;
+          }
+          this.currentMesh.rotation.y = this.rotY;
+
+          if (this.bounceTimer > 0) {
+            this.bounceTimer = Math.max(0, this.bounceTimer - dt);
+            const jump = Math.sin((1 - this.bounceTimer / 0.95) * Math.PI * 2);
+            this.currentMesh.position.y = Math.abs(jump) * 0.45;
+            this.currentMesh.rotation.z = Math.sin(t * 22) * 0.08;
+          } else {
+            this.currentMesh.position.y = Math.sin(t * 2.2) * 0.04;
+            this.currentMesh.rotation.z *= 0.85;
+          }
+        }
+
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    /* ===========================================================
+       6. EXPLORE SECTION PLAYABLE 3D LOW POLY FARM SANDBOX
+       =========================================================== */
+    class ExploreFarm3D {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.isVisible = true;
+        this.clock = new THREE.Clock();
+        this.raycaster = new THREE.Raycaster();
+        this.pointer = new THREE.Vector2();
+        this.interactiveObjects = [];
+        this.animalMeshes = {};
+        this.animalJumpTimers = {};
+        this.plotMeshes = [];
+        this.decorGroups = {};
+        this.treasureMeshes = {};
+        this.trees = [];
+        this.clouds = [];
+        this.currentSeason = 'spring';
+        this.sakuraPetals = [];
+        this.autumnLeaves = [];
+        this.summerMotes = [];
+        this.stars = [];
+        this.fireflies = [];
+
+        // Smooth Orbit Camera State
+        this.orbitTheta = 0.55;
+        this.orbitPhi = 0.95;
+        this.orbitRadius = 23;
+        this.desiredTheta = 0.55;
+        this.desiredPhi = 0.95;
+        this.desiredRadius = 23;
+        this.targetLookAt = new THREE.Vector3(0, 1.2, 0);
+        this.desiredLookAt = new THREE.Vector3(0, 1.2, 0);
+        this.isPointerDown = false;
+        this.dragMoved = false;
+        this.downPos = { x: 0, y: 0 };
+        this.prevPos = { x: 0, y: 0 };
+
+        try {
+          this.init();
+        } catch (err) {
+          console.warn('Explore WebGL fallback:', err);
+        }
+      }
+
+      registerInteractive(obj) {
+        this.interactiveObjects.push(obj);
+      }
+
+      init() {
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.FogExp2(0xE8EFF5, 0.015);
+
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        this.camera = new THREE.PerspectiveCamera(42, rect.width / rect.height, 0.1, 160);
+        this.camera.position.set(12, 14, 20);
+        this.camera.lookAt(0, 1.2, 0);
+
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
+        this.renderer.setSize(rect.width, rect.height);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // Ambient & Directional Sunlight
+        this.hemiLight = new THREE.HemisphereLight(0xFFF5F8, 0x8C9F85, 0.92);
+        this.scene.add(this.hemiLight);
+
+        this.dirLight = new THREE.DirectionalLight(0xFFF3E2, 0.95);
+        this.dirLight.position.set(15, 24, 16);
+        this.dirLight.castShadow = true;
+        this.dirLight.shadow.mapSize.width = 1024;
+        this.dirLight.shadow.mapSize.height = 1024;
+        this.dirLight.shadow.camera.near = 2;
+        this.dirLight.shadow.camera.far = 65;
+        const d = 18;
+        this.dirLight.shadow.camera.left = -d;
+        this.dirLight.shadow.camera.right = d;
+        this.dirLight.shadow.camera.top = d;
+        this.dirLight.shadow.camera.bottom = -d;
+        this.scene.add(this.dirLight);
+
+        this.buildWorld();
+        this.buildSeasonalEffects();
+        this.bindControls();
+        this.setSeason('spring');
+        this.onResize();
+        this.renderer.render(this.scene, this.camera);
+
+        window.addEventListener('resize', () => this.onResize());
+        this.animate();
+      }
+
+      buildTreasures() {
+        const treasureSpecs = [
+          { id: 'butterfly', pos: [-1.8, 1.35, -7.8], color: 0x56CCF2, emissive: 0x2D9CDB, shape: 'butterfly' },
+          { id: 'mushroom', pos: [1.8, 0.35, -8.2], color: 0xF2994A, emissive: 0xEB5757, shape: 'mushroom' },
+          { id: 'clover', pos: [-3.1, 0.38, 5.8], color: 0x6FCF97, emissive: 0x27AE60, shape: 'clover' },
+          { id: 'pebble', pos: [2.2, 0.32, 4.3], color: 0xBB6BD9, emissive: 0x9B51E0, shape: 'pebble' }
+        ];
+
+        treasureSpecs.forEach(spec => {
+          const trInfo = TREASURES_DATA.find(t => t.id === spec.id);
+          const group = new THREE.Group();
+          group.position.set(...spec.pos);
+          group.userData = {
+            type: 'treasure',
+            id: spec.id,
+            label: `✨ 發現隱藏小物：${trInfo ? trInfo.name : spec.id}（點擊收集）`
+          };
+
+          const visualPivot = new THREE.Group();
+          const mat = LowPolyFactory.mat(spec.color, {
+            emissive: spec.emissive,
+            emissiveIntensity: 0.55,
+            roughness: 0.35
+          });
+
+          if (spec.shape === 'butterfly') {
+            const wingGeo = new THREE.ConeGeometry(0.28, 0.42, 3);
+            const wingL = new THREE.Mesh(wingGeo, mat);
+            wingL.rotation.set(0.3, 0.4, 0.85);
+            wingL.position.x = -0.14;
+            const wingR = new THREE.Mesh(wingGeo, mat);
+            wingR.rotation.set(0.3, -0.4, -0.85);
+            wingR.position.x = 0.14;
+            visualPivot.add(wingL, wingR);
+          } else if (spec.shape === 'mushroom') {
+            const cap = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.28, 6), mat);
+            cap.position.y = 0.16;
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.24, 5), LowPolyFactory.mat(0xFAF5E8));
+            visualPivot.add(cap, stem);
+          } else if (spec.shape === 'clover') {
+            for (let i = 0; i < 4; i++) {
+              const leaf = new THREE.Mesh(new THREE.DodecahedronGeometry(0.15, 0), mat);
+              const angle = (Math.PI / 2) * i;
+              leaf.scale.set(1.1, 0.35, 1.1);
+              leaf.position.set(Math.cos(angle) * 0.14, 0.05, Math.sin(angle) * 0.14);
+              visualPivot.add(leaf);
+            }
+          } else {
+            const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.26, 0), mat);
+            gem.scale.set(1.2, 0.85, 1);
+            visualPivot.add(gem);
+          }
+
+          // Subtle glowing ring underneath for discoverability
+          const ring = new THREE.Mesh(
+            new THREE.RingGeometry(0.28, 0.36, 8),
+            new THREE.MeshBasicMaterial({ color: 0xFFE699, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
+          );
+          ring.rotation.x = -Math.PI / 2;
+          ring.position.y = -0.18;
+
+          group.add(visualPivot, ring);
+          this.scene.add(group);
+          this.treasureMeshes[spec.id] = group;
+          this.registerInteractive(group);
+        });
+      }
+
+      buildSeasonalEffects() {
+        // 1. Spring Sakura Petals (春櫻花瓣)
+        this.sakuraGroup = new THREE.Group();
+        const petalColors = [0xFFB7C5, 0xFAD2DC, 0xFF9EB5];
+        for (let i = 0; i < 48; i++) {
+          const petal = new THREE.Mesh(
+            new THREE.DodecahedronGeometry(0.12, 0),
+            LowPolyFactory.mat(petalColors[i % petalColors.length], { roughness: 0.6 })
+          );
+          petal.scale.set(1.3, 0.25, 0.85);
+          petal.position.set(
+            (Math.random() - 0.5) * 24,
+            1 + Math.random() * 13,
+            (Math.random() - 0.5) * 24
+          );
+          petal.userData = {
+            fallSpeed: 0.7 + Math.random() * 0.65,
+            swaySpeed: 1.1 + Math.random() * 1.2,
+            swayAmp: 0.8 + Math.random() * 0.8,
+            rotSpeed: 1.5 + Math.random() * 2.0,
+            phase: Math.random() * Math.PI * 2
+          };
+          this.sakuraGroup.add(petal);
+          this.sakuraPetals.push(petal);
+        }
+        this.scene.add(this.sakuraGroup);
+
+        // 2. Summer Sunlit Motes (盛夏微光浮動)
+        this.summerMotesGroup = new THREE.Group();
+        this.summerMotesGroup.visible = false;
+        for (let i = 0; i < 36; i++) {
+          const mote = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.09, 0),
+            LowPolyFactory.mat(0xFFF6CC, { emissive: 0xFFE699, emissiveIntensity: 0.9 })
+          );
+          const baseY = 0.8 + Math.random() * 5.5;
+          mote.position.set(
+            (Math.random() - 0.5) * 22,
+            baseY,
+            (Math.random() - 0.5) * 22
+          );
+          mote.userData = {
+            baseY,
+            speed: 1.2 + Math.random() * 1.4,
+            phase: Math.random() * Math.PI * 2
+          };
+          this.summerMotesGroup.add(mote);
+          this.summerMotes.push(mote);
+        }
+        this.scene.add(this.summerMotesGroup);
+
+        // 3. Autumn Falling Leaves (秋夕金黃落葉)
+        this.autumnLeavesGroup = new THREE.Group();
+        this.autumnLeavesGroup.visible = false;
+        const autumnColors = [0xE89B4C, 0xF2BE5C, 0xD96B43];
+        for (let i = 0; i < 48; i++) {
+          const leaf = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.14, 0),
+            LowPolyFactory.mat(autumnColors[i % autumnColors.length], { roughness: 0.75 })
+          );
+          leaf.scale.set(1.4, 0.25, 0.9);
+          leaf.position.set(
+            (Math.random() - 0.5) * 24,
+            1 + Math.random() * 13,
+            (Math.random() - 0.5) * 24
+          );
+          leaf.userData = {
+            fallSpeed: 0.85 + Math.random() * 0.75,
+            swaySpeed: 1.0 + Math.random() * 1.1,
+            swayAmp: 0.9 + Math.random() * 0.9,
+            rotSpeed: 1.8 + Math.random() * 2.2,
+            phase: Math.random() * Math.PI * 2
+          };
+          this.autumnLeavesGroup.add(leaf);
+          this.autumnLeaves.push(leaf);
+        }
+        this.scene.add(this.autumnLeavesGroup);
+
+        // 4. Starry Night Moon, Twinkling Stars & Fireflies (星夜明月、閃爍星空與螢火蟲)
+        this.starrySkyGroup = new THREE.Group();
+        this.starrySkyGroup.visible = false;
+
+        // Low Poly Moon
+        const moon = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(1.45, 1),
+          LowPolyFactory.mat(0xFFF4C2, { emissive: 0xFFE699, emissiveIntensity: 0.95 })
+        );
+        moon.position.set(-9, 14.5, -14);
+        this.starrySkyGroup.add(moon);
+
+        // Twinkling Stars across sky dome
+        for (let i = 0; i < 68; i++) {
+          const starMat = new THREE.MeshBasicMaterial({
+            color: i % 3 === 0 ? 0xFFF8DC : 0xDCEEF3,
+            transparent: true,
+            opacity: 0.9
+          });
+          const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.14, 0), starMat);
+          const theta = Math.random() * Math.PI * 2;
+          const radius = 12 + Math.random() * 18;
+          const height = 8 + Math.random() * 12;
+          star.position.set(Math.cos(theta) * radius, height, Math.sin(theta) * radius);
+          const baseScale = 0.7 + Math.random() * 0.9;
+          star.scale.setScalar(baseScale);
+          star.userData = {
+            twinkleSpeed: 2.0 + Math.random() * 3.2,
+            phase: Math.random() * Math.PI * 2,
+            baseScale
+          };
+          this.starrySkyGroup.add(star);
+          this.stars.push(star);
+        }
+
+        // Meadow & Lakeside Fireflies
+        for (let i = 0; i < 24; i++) {
+          const ffMat = new THREE.MeshBasicMaterial({
+            color: 0xD8FF8A,
+            transparent: true,
+            opacity: 0.85
+          });
+          const ff = new THREE.Mesh(new THREE.OctahedronGeometry(0.08, 0), ffMat);
+          const baseX = (Math.random() - 0.5) * 18;
+          const baseY = 0.6 + Math.random() * 2.4;
+          const baseZ = (Math.random() - 0.5) * 18;
+          ff.position.set(baseX, baseY, baseZ);
+          ff.userData = {
+            baseX,
+            baseY,
+            baseZ,
+            phase: Math.random() * Math.PI * 2
+          };
+          this.starrySkyGroup.add(ff);
+          this.fireflies.push(ff);
+        }
+
+        this.scene.add(this.starrySkyGroup);
+      }
+
+      buildWorld() {
+        // Main Low Poly Meadow Island
+        this.groundMat = LowPolyFactory.mat(0xB4D3A2);
+        const ground = new THREE.Mesh(
+          new THREE.CylinderGeometry(16.5, 14.8, 2.4, 14),
+          this.groundMat
+        );
+        ground.position.y = -1.2;
+        ground.receiveShadow = true;
+        this.scene.add(ground);
+
+        // Background Hills
+        const hill1 = new THREE.Mesh(new THREE.ConeGeometry(6.8, 5.5, 7), LowPolyFactory.mat(0x9BBF8E));
+        hill1.position.set(-9.5, 2.4, -9.5);
+        hill1.receiveShadow = true;
+        const hill2 = new THREE.Mesh(new THREE.ConeGeometry(7.6, 6.4, 7), LowPolyFactory.mat(0x8C9F85));
+        hill2.position.set(9.2, 2.8, -10.2);
+        hill2.receiveShadow = true;
+        this.scene.add(hill1, hill2);
+
+        // Winding Dirt Path
+        const pathMat = LowPolyFactory.mat(0xE8CFAF);
+        [
+          [-2.2, 0.03, 0.5, 3.8, 1.4, 0.4],
+          [1.6, 0.03, -0.4, 4.2, 1.4, -0.35],
+          [-2.8, 0.03, 2.8, 1.5, 3.4, 0.25],
+          [2.4, 0.03, 2.6, 1.5, 3.2, -0.35]
+        ].forEach(([x, y, z, w, l, r]) => {
+          const seg = new THREE.Mesh(new THREE.BoxGeometry(w, 0.06, l), pathMat);
+          seg.position.set(x, y, z);
+          seg.rotation.y = r;
+          seg.receiveShadow = true;
+          this.scene.add(seg);
+        });
+
+        // 1. Cozy Cabin
+        this.cabin = LowPolyFactory.createCabin();
+        this.cabin.position.set(-4.5, 0, -2.6);
+        this.cabin.rotation.y = 0.42;
+        this.scene.add(this.cabin);
+        this.registerInteractive(this.cabin);
+
+        // 2. Animal Barn & Windmill
+        this.barn = LowPolyFactory.createBarn();
+        this.barn.position.set(4.8, 0, -3.4);
+        this.barn.rotation.y = -0.38;
+        this.scene.add(this.barn);
+        this.registerInteractive(this.barn);
+
+        this.windmill = LowPolyFactory.createWindmill();
+        this.windmill.position.set(8.8, 0, -5.2);
+        this.windmill.rotation.y = -0.35;
+        this.scene.add(this.windmill);
+
+        // 3. Little Garden (6 Interactive Plots)
+        const gardenGroup = new THREE.Group();
+        gardenGroup.userData = { type: 'zone', id: 'garden', label: '🥕 小小菜園（點擊查看介紹）' };
+        gardenGroup.position.set(-5.2, 0, 4.5);
+
+        const gardenBorder = new THREE.Mesh(
+          new THREE.BoxGeometry(4.4, 0.24, 3.2),
+          LowPolyFactory.mat(0xDDAE83)
+        );
+        gardenBorder.position.y = 0.12;
+        gardenBorder.receiveShadow = true;
+        gardenGroup.add(gardenBorder);
+
+        const soilMat = LowPolyFactory.mat(0x7A583E);
+        for (let row = 0; row < 2; row++) {
+          for (let col = 0; col < 3; col++) {
+            const px = (col - 1) * 1.25;
+            const pz = (row - 0.5) * 1.25;
+            const tile = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.12, 1.05), soilMat);
+            tile.position.set(px, 0.24, pz);
+            tile.receiveShadow = true;
+            gardenGroup.add(tile);
+
+            const cropHolder = new THREE.Group();
+            cropHolder.position.set(px, 0.3, pz);
+            gardenGroup.add(cropHolder);
+            this.plotMeshes.push(cropHolder);
+          }
+        }
+        this.scene.add(gardenGroup);
+        this.registerInteractive(gardenGroup);
+
+        // 4. Lakeside Meadow (Pond, Wooden Dock & Picnic Mat)
+        const lakeGroup = new THREE.Group();
+        lakeGroup.userData = { type: 'zone', id: 'lake', label: '💧 湖畔草地（點擊查看介紹）' };
+        lakeGroup.position.set(4.8, 0, 5.2);
+
+        const pond = new THREE.Mesh(
+          new THREE.CylinderGeometry(3.1, 2.8, 0.16, 9),
+          LowPolyFactory.mat(0x9DC7D8, { roughness: 0.35 })
+        );
+        pond.position.y = 0.05;
+        pond.receiveShadow = true;
+        lakeGroup.add(pond);
+
+        const dock = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 0.16, 0.9),
+          LowPolyFactory.mat(0xDDAE83)
+        );
+        dock.position.set(-2.5, 0.14, -0.4);
+        dock.rotation.y = 0.3;
+        lakeGroup.add(dock);
+
+        const picnicMat = new THREE.Mesh(
+          new THREE.BoxGeometry(1.5, 0.06, 1.2),
+          LowPolyFactory.mat(0xE9D9DC)
+        );
+        picnicMat.position.set(-3.4, 0.04, 1.1);
+        picnicMat.rotation.y = 0.25;
+        lakeGroup.add(picnicMat);
+
+        this.scene.add(lakeGroup);
+        this.registerInteractive(lakeGroup);
+
+        // 5. Forest Trail Zone Marker & Path
+        const forestZone = new THREE.Group();
+        forestZone.userData = { type: 'zone', id: 'forest', label: '🌲 森林小徑（點擊查看介紹）' };
+        forestZone.position.set(0.2, 0, -8.5);
+        const forestTrailBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(3.4, 3.4, 0.08, 8),
+          LowPolyFactory.mat(0x8C9F85)
+        );
+        forestTrailBase.position.y = 0.02;
+        forestZone.add(forestTrailBase);
+        this.scene.add(forestZone);
+        this.registerInteractive(forestZone);
+
+        // Perimeter & Forest Low Poly Trees
+        const treeSpecs = [
+          [-2.6, 0, -8.8, 'pine'], [0.4, 0, -9.8, 'oak'], [3.2, 0, -8.4, 'pine'],
+          [-9.8, 0, -3.5, 'pine'], [-10.5, 0, 2.5, 'oak'], [-8.8, 0, 7.2, 'pine'],
+          [10.2, 0, -0.5, 'oak'], [9.6, 0, 4.8, 'pine'], [7.2, 0, 8.8, 'oak']
+        ];
+        treeSpecs.forEach(([x, y, z, kind], idx) => {
+          const tree = LowPolyFactory.createTree(kind, 0xF5B7C7);
+          tree.position.set(x, y, z);
+          tree.userData.phase = idx * 0.85;
+          this.scene.add(tree);
+          this.trees.push(tree);
+        });
+
+        // Place All 5 Interactive Animals
+        const animalSpots = [
+          { id: 'cotton', label: '🐰 棉球 Cotton（點擊互動）', pos: [-5.8, 0, 2.2], rot: 0.5 },
+          { id: 'butter', label: '🐄 奶油 Butter（點擊互動）', pos: [2.8, 0, -0.4], rot: -0.4 },
+          { id: 'chippy', label: '🐥 啾啾 Chippy（點擊互動）', pos: [1.5, 0, 4.4], rot: 0.3 },
+          { id: 'snowy', label: '🐑 雪球 Snowy（點擊互動）', pos: [6.4, 0, 0.6], rot: -0.7 },
+          { id: 'tangy', label: '🐱 橘子 Tangy（點擊互動）', pos: [-3.2, 0, -0.8], rot: 0.35 }
+        ];
+        animalSpots.forEach(spot => {
+          const mesh = LowPolyFactory.createAnimal(spot.id);
+          mesh.position.set(...spot.pos);
+          mesh.rotation.y = spot.rot;
+          mesh.userData = { type: 'animal', id: spot.id, label: spot.label };
+          this.scene.add(mesh);
+          this.animalMeshes[spot.id] = mesh;
+          this.animalJumpTimers[spot.id] = 0;
+          this.registerInteractive(mesh);
+        });
+
+        // Build Treasures & Toggleable Decorations
+        this.buildTreasures();
+        this.buildDecorations();
+
+        // Clouds
+        [[-8, 10, -5], [3, 11.2, -7], [9, 9.6, -2]].forEach(([x, y, z], idx) => {
+          const c = LowPolyFactory.createCloud();
+          c.position.set(x, y, z);
+          c.userData.speed = 0.22 + idx * 0.06;
+          this.scene.add(c);
+          this.clouds.push(c);
+        });
+      }
+
+      buildDecorations() {
+        // 1. Wooden Fences
+        const fences = new THREE.Group();
+        const fenceMat = LowPolyFactory.mat(0xDDAE83);
+        [[-8.2, 0, 1.2, 0.2], [-7.5, 0, -4.5, 0.8], [7.8, 0, -1.5, -0.4], [7.2, 0, 2.4, 0.3]].forEach(([x, y, z, r]) => {
+          const seg = new THREE.Group();
+          seg.position.set(x, y, z);
+          seg.rotation.y = r;
+          const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.9, 0.16), fenceMat);
+          p1.position.set(-0.7, 0.45, 0);
+          const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.9, 0.16), fenceMat);
+          p2.position.set(0.7, 0.45, 0);
+          const rail1 = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 0.1), fenceMat);
+          rail1.position.set(0, 0.65, 0);
+          const rail2 = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 0.1), fenceMat);
+          rail2.position.set(0, 0.32, 0);
+          seg.add(p1, p2, rail1, rail2);
+          fences.add(seg);
+        });
+        this.scene.add(fences);
+        this.decorGroups.fences = fences;
+
+        // 2. Wildflowers
+        const flowers = new THREE.Group();
+        const flowerColors = [0xFAF5E8, 0xF2C94C, 0xE9D9DC, 0xEDC5A8];
+        [[-1.2, 6.2], [-6.5, 1.8], [1.2, -4.2], [7.4, 4.2], [-0.5, -1.5], [3.5, 2.5]].forEach(([x, z], i) => {
+          const f = new THREE.Mesh(
+            new THREE.DodecahedronGeometry(0.24, 0),
+            LowPolyFactory.mat(flowerColors[i % flowerColors.length])
+          );
+          f.position.set(x, 0.16, z);
+          flowers.add(f);
+        });
+        this.scene.add(flowers);
+        this.decorGroups.flowers = flowers;
+
+        // 3. Flower Pots (by Cabin)
+        const pots = new THREE.Group();
+        pots.visible = false;
+        [[-5.3, -1.1], [-2.5, -1.8]].forEach(([x, z], i) => {
+          const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 0.38, 6), LowPolyFactory.mat(0xD4846A));
+          pot.position.set(x, 0.19, z);
+          const bloom = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32, 0), LowPolyFactory.mat(i === 0 ? 0xFF758F : 0xF2C94C));
+          bloom.position.set(x, 0.5, z);
+          pots.add(pot, bloom);
+        });
+        this.scene.add(pots);
+        this.decorGroups.flowerpots = pots;
+
+        // 4. Vintage Lanterns
+        const lanterns = new THREE.Group();
+        lanterns.visible = false;
+        this.lanternBulbMats = [];
+        [[-1.5, 2.2], [2.4, 2.8], [-5.8, 2.2]].forEach(([x, z]) => {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.65, 5), LowPolyFactory.mat(0x6B523E));
+          post.position.set(x, 0.82, z);
+          const bulbMat = LowPolyFactory.mat(0xFFE699, { emissive: 0xFFB84D, emissiveIntensity: 0.8 });
+          this.lanternBulbMats.push(bulbMat);
+          const lamp = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.24, 0),
+            bulbMat
+          );
+          lamp.position.set(x, 1.75, z);
+          lanterns.add(post, lamp);
+        });
+        this.scene.add(lanterns);
+        this.decorGroups.lanterns = lanterns;
+
+        // 5. Wooden Bench (by Lake)
+        const bench = new THREE.Group();
+        bench.visible = false;
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, 0.52), LowPolyFactory.mat(0xDDAE83));
+        seat.position.set(1.2, 0.42, 4.9);
+        seat.rotation.y = 0.5;
+        const back = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.45, 0.1), LowPolyFactory.mat(0x8C6749));
+        back.position.set(1.05, 0.68, 4.7);
+        back.rotation.y = 0.5;
+        bench.add(seat, back);
+        this.scene.add(bench);
+        this.decorGroups.bench = bench;
+
+        // 6. Decorative Stones
+        const stones = new THREE.Group();
+        const stoneMat = LowPolyFactory.mat(0xB8B0A8);
+        [[1.8, 4.2, 0.35], [2.2, 4.5, 0.24], [-6.8, -0.5, 0.32], [6.8, 3.2, 0.3]].forEach(([x, z, r]) => {
+          const st = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), stoneMat);
+          st.scale.set(1.2, 0.7, 1);
+          st.position.set(x, r * 0.45, z);
+          stones.add(st);
+        });
+        this.scene.add(stones);
+        this.decorGroups.stones = stones;
+      }
+
+      updateGardenPlot(index, plotState) {
+        const holder = this.plotMeshes[index];
+        if (!holder) return;
+        while (holder.children.length > 0) holder.remove(holder.children[0]);
+
+        if (!plotState || plotState.stage === 0) return;
+        const cropInfo = CROPS_DATA.find(c => c.id === plotState.cropId) || CROPS_DATA[0];
+
+        if (plotState.stage === 1) {
+          // Seeded mounds
+          const seed = new THREE.Mesh(new THREE.DodecahedronGeometry(0.14, 0), LowPolyFactory.mat(0xDDAE83));
+          seed.position.y = 0.06;
+          holder.add(seed);
+        } else if (plotState.stage === 2) {
+          // Little Green Sprout
+          const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.3, 5), LowPolyFactory.mat(0x6FCF97));
+          stem.position.y = 0.15;
+          const leaf1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.16, 0), LowPolyFactory.mat(0x6FCF97));
+          leaf1.scale.set(1.4, 0.5, 0.8);
+          leaf1.position.set(0.12, 0.3, 0);
+          holder.add(stem, leaf1);
+        } else if (plotState.stage === 3) {
+          // Ripe Harvestable Low Poly Crop!
+          const fruit = new THREE.Mesh(
+            plotState.cropId === 'carrot' ? new THREE.ConeGeometry(0.24, 0.55, 6) : new THREE.DodecahedronGeometry(0.32, 1),
+            LowPolyFactory.mat(cropInfo.color)
+          );
+          if (plotState.cropId === 'carrot') {
+            fruit.rotation.x = Math.PI;
+            fruit.position.y = 0.25;
+          } else {
+            fruit.position.y = 0.32;
+          }
+          fruit.castShadow = true;
+
+          const topLeaf = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), LowPolyFactory.mat(cropInfo.leaf));
+          topLeaf.position.y = 0.58;
+          holder.add(fruit, topLeaf);
+        }
+      }
+
+      setDecorVisibility(id, isVisible) {
+        if (this.decorGroups[id]) {
+          this.decorGroups[id].visible = isVisible;
+        }
+      }
+
+      bounceAnimal(id) {
+        if (this.animalJumpTimers[id] !== undefined) {
+          this.animalJumpTimers[id] = 1.0;
+        }
+      }
+
+      focusZone(zoneKey) {
+        const presets = {
+          overview: { theta: 0.55, phi: 0.95, radius: 23, look: [0, 1.2, 0] },
+          cabin: { theta: -0.45, phi: 1.02, radius: 13.5, look: [-4.2, 1.2, -2.5] },
+          barn: { theta: 0.65, phi: 1.02, radius: 14, look: [4.8, 1.2, -3.5] },
+          garden: { theta: -0.65, phi: 0.92, radius: 12.5, look: [-5.2, 0.6, 4.6] },
+          lake: { theta: 0.55, phi: 0.95, radius: 13.5, look: [4.8, 0.6, 5.2] },
+          forest: { theta: 0.1, phi: 1.05, radius: 14.5, look: [0.2, 1.2, -8.5] }
+        };
+        const p = presets[zoneKey] || presets.overview;
+        this.desiredTheta = p.theta;
+        this.desiredPhi = p.phi;
+        this.desiredRadius = p.radius;
+        this.desiredLookAt.set(...p.look);
+      }
+
+      setSeason(season) {
+        this.currentSeason = season;
+        const wrapper = document.getElementById('explore-canvas-wrapper');
+
+        // Seasonal Tree Foliage Palettes
+        const treePalettes = {
+          spring: [0xF5B7C7, 0xFAD2DC, 0xEFA3B8], // 春櫻：柔粉與櫻花粉
+          summer: [0x6F9E68, 0x84B578, 0x5E8C58], // 盛夏：濃郁翠綠
+          autumn: [0xE89B4C, 0xF2BE5C, 0xD96B43], // 秋夕：金黃與暖橘
+          twilight: [0x4D6658, 0x5B7566, 0x3F574A] // 星夜：月光深林綠
+        };
+        const palette = treePalettes[season] || treePalettes.spring;
+        this.trees.forEach((tree, idx) => {
+          const targetHex = palette[idx % palette.length];
+          if (tree.userData.foliageMeshes) {
+            tree.userData.foliageMeshes.forEach(m => m.material.color.setHex(targetHex));
+          }
+        });
+
+        // Toggle Seasonal Weather / Sky Particle Systems
+        if (this.sakuraGroup) this.sakuraGroup.visible = (season === 'spring');
+        if (this.summerMotesGroup) this.summerMotesGroup.visible = (season === 'summer');
+        if (this.autumnLeavesGroup) this.autumnLeavesGroup.visible = (season === 'autumn');
+        if (this.starrySkyGroup) this.starrySkyGroup.visible = (season === 'twilight');
+
+        // Adjust Lantern Glow for Night / Autumn
+        if (this.lanternBulbMats) {
+          const glow = season === 'twilight' ? 1.5 : (season === 'autumn' ? 1.1 : 0.75);
+          this.lanternBulbMats.forEach(mat => { mat.emissiveIntensity = glow; });
+        }
+
+        if (season === 'spring') {
+          wrapper.style.background = 'linear-gradient(to bottom, #D6ECF5, #F5E6EC)';
+          this.scene.fog.color.setHex(0xE8EFF5);
+          this.groundMat.color.setHex(0xB4D3A2);
+          this.hemiLight.color.setHex(0xFFF5F8);
+          this.dirLight.color.setHex(0xFFF3E2);
+          this.dirLight.intensity = 0.95;
+          this.cabin.userData.windowMat.emissiveIntensity = 0.35;
+        } else if (season === 'summer') {
+          wrapper.style.background = 'linear-gradient(to bottom, #9DC7D8, #D5E5BD)';
+          this.scene.fog.color.setHex(0xCFE9F3);
+          this.groundMat.color.setHex(0x94BE83);
+          this.hemiLight.color.setHex(0xFAF5E8);
+          this.dirLight.color.setHex(0xFFF8E7);
+          this.dirLight.intensity = 1.12;
+          this.cabin.userData.windowMat.emissiveIntensity = 0.2;
+        } else if (season === 'autumn') {
+          wrapper.style.background = 'linear-gradient(to bottom, #F4C396, #F7E3C6)';
+          this.scene.fog.color.setHex(0xF6DEC2);
+          this.groundMat.color.setHex(0xD8B579);
+          this.hemiLight.color.setHex(0xFFEBD2);
+          this.dirLight.color.setHex(0xFFC88A);
+          this.dirLight.intensity = 0.98;
+          this.cabin.userData.windowMat.emissiveIntensity = 0.9;
+        } else if (season === 'twilight') {
+          wrapper.style.background = 'linear-gradient(to bottom, #2C3654, #6D6A8F)';
+          this.scene.fog.color.setHex(0x464E70);
+          this.groundMat.color.setHex(0x5D7563);
+          this.hemiLight.color.setHex(0x9FA8DA);
+          this.dirLight.color.setHex(0xC6C2EB);
+          this.dirLight.intensity = 0.55;
+          this.cabin.userData.windowMat.emissiveIntensity = 1.4;
+        }
+      }
+
+      bindControls() {
+        const dom = this.canvas;
+        const hoverPill = document.getElementById('explore-hover-pill');
+
+        const updatePointerRay = (clientX, clientY) => {
+          const rect = dom.getBoundingClientRect();
+          this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+          this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+        };
+
+        const findHitTarget = () => {
+          this.raycaster.setFromCamera(this.pointer, this.camera);
+          const hits = this.raycaster.intersectObjects(this.interactiveObjects, true);
+          if (hits.length === 0) return null;
+          let obj = hits[0].object;
+          while (obj && !obj.userData?.type) {
+            obj = obj.parent;
+          }
+          return obj && obj.visible ? obj : null;
+        };
+
+        dom.addEventListener('mousedown', (e) => {
+          this.isPointerDown = true;
+          this.dragMoved = false;
+          this.downPos = { x: e.clientX, y: e.clientY };
+          this.prevPos = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('mouseup', (e) => {
+          if (this.isPointerDown && !this.dragMoved) {
+            updatePointerRay(e.clientX, e.clientY);
+            const target = findHitTarget();
+            if (target) handle3DObjectClick(target.userData);
+          }
+          this.isPointerDown = false;
+        });
+
+        dom.addEventListener('mousemove', (e) => {
+          if (this.isPointerDown) {
+            const dx = e.clientX - this.prevPos.x;
+            const dy = e.clientY - this.prevPos.y;
+            if (Math.hypot(e.clientX - this.downPos.x, e.clientY - this.downPos.y) > 5) {
+              this.dragMoved = true;
+            }
+            this.desiredTheta -= dx * 0.008;
+            this.desiredPhi = Math.max(0.45, Math.min(1.32, this.desiredPhi - dy * 0.007));
+            this.prevPos = { x: e.clientX, y: e.clientY };
+          } else {
+            updatePointerRay(e.clientX, e.clientY);
+            const target = findHitTarget();
+            if (target) {
+              dom.style.cursor = 'pointer';
+              hoverPill.textContent = target.userData.label;
+              hoverPill.classList.remove('hidden');
+            } else {
+              dom.style.cursor = 'grab';
+              hoverPill.classList.add('hidden');
+            }
+          }
+        });
+
+        // Wheel Zoom (only when pointer is inside canvas)
+        dom.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          this.desiredRadius = Math.max(10, Math.min(32, this.desiredRadius + e.deltaY * 0.012));
+        }, { passive: false });
+
+        // Touch Drag & Tap Support
+        dom.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            this.isPointerDown = true;
+            this.dragMoved = false;
+            const t = e.touches[0];
+            this.downPos = { x: t.clientX, y: t.clientY };
+            this.prevPos = { x: t.clientX, y: t.clientY };
+          }
+        }, { passive: true });
+
+        dom.addEventListener('touchmove', (e) => {
+          if (!this.isPointerDown || e.touches.length !== 1) return;
+          const t = e.touches[0];
+          const dx = t.clientX - this.prevPos.x;
+          const dy = t.clientY - this.prevPos.y;
+          if (Math.hypot(t.clientX - this.downPos.x, t.clientY - this.downPos.y) > 8) {
+            this.dragMoved = true;
+          }
+          this.desiredTheta -= dx * 0.01;
+          this.desiredPhi = Math.max(0.45, Math.min(1.32, this.desiredPhi - dy * 0.008));
+          this.prevPos = { x: t.clientX, y: t.clientY };
+        }, { passive: true });
+
+        dom.addEventListener('touchend', (e) => {
+          if (this.isPointerDown && !this.dragMoved && e.changedTouches.length > 0) {
+            const t = e.changedTouches[0];
+            updatePointerRay(t.clientX, t.clientY);
+            const target = findHitTarget();
+            if (target) handle3DObjectClick(target.userData);
+          }
+          this.isPointerDown = false;
+        });
+      }
+
+      onResize() {
+        if (!this.renderer || !this.canvas.parentElement) return;
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        this.camera.aspect = rect.width / rect.height;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(rect.width, rect.height);
+      }
+
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        if (!this.isVisible || !this.renderer) return;
+
+        const dt = this.clock.getDelta();
+        const t = this.clock.getElapsedTime();
+
+        // Smooth Camera Interpolation
+        this.orbitTheta += (this.desiredTheta - this.orbitTheta) * 0.08;
+        this.orbitPhi += (this.desiredPhi - this.orbitPhi) * 0.08;
+        this.orbitRadius += (this.desiredRadius - this.orbitRadius) * 0.08;
+        this.targetLookAt.lerp(this.desiredLookAt, 0.08);
+
+        this.camera.position.x = this.targetLookAt.x + this.orbitRadius * Math.sin(this.orbitPhi) * Math.sin(this.orbitTheta);
+        this.camera.position.y = this.targetLookAt.y + this.orbitRadius * Math.cos(this.orbitPhi);
+        this.camera.position.z = this.targetLookAt.z + this.orbitRadius * Math.sin(this.orbitPhi) * Math.cos(this.orbitTheta);
+        this.camera.lookAt(this.targetLookAt);
+
+        // Windmill Rotation
+        if (this.windmill && this.windmill.userData.rotor) {
+          this.windmill.userData.rotor.rotation.z -= 0.009;
+        }
+
+        // Clouds Drift
+        this.clouds.forEach(c => {
+          c.position.x += c.userData.speed * 0.015;
+          if (c.position.x > 16) c.position.x = -16;
+        });
+
+        // Trees Sway
+        this.trees.forEach(tree => {
+          tree.rotation.z = Math.sin(t * 1.15 + tree.userData.phase) * 0.025;
+        });
+
+        // Spring Cherry Blossom Petals Drifting (春櫻飄落)
+        if (this.sakuraGroup && this.sakuraGroup.visible) {
+          this.sakuraPetals.forEach(p => {
+            const d = p.userData;
+            p.position.y -= d.fallSpeed * dt;
+            p.position.x += Math.sin(t * d.swaySpeed + d.phase) * d.swayAmp * dt;
+            p.position.z += Math.cos(t * d.swaySpeed * 0.8 + d.phase) * d.swayAmp * 0.6 * dt;
+            p.rotation.x += d.rotSpeed * dt;
+            p.rotation.y += d.rotSpeed * 0.8 * dt;
+            if (p.position.y < 0.15) {
+              p.position.y = 12.5 + Math.random() * 2;
+            }
+          });
+        }
+
+        // Summer Gentle Sunlit Motes (盛夏微光浮動)
+        if (this.summerMotesGroup && this.summerMotesGroup.visible) {
+          this.summerMotes.forEach(m => {
+            const d = m.userData;
+            m.position.y = d.baseY + Math.sin(t * d.speed + d.phase) * 0.45;
+            m.position.x += Math.cos(t * 0.6 + d.phase) * 0.18 * dt;
+          });
+        }
+
+        // Autumn Falling Yellow-Orange Leaves (秋夕落葉)
+        if (this.autumnLeavesGroup && this.autumnLeavesGroup.visible) {
+          this.autumnLeaves.forEach(leaf => {
+            const d = leaf.userData;
+            leaf.position.y -= d.fallSpeed * dt;
+            leaf.position.x += Math.sin(t * d.swaySpeed + d.phase) * d.swayAmp * dt;
+            leaf.rotation.x += d.rotSpeed * dt;
+            leaf.rotation.z += d.rotSpeed * 0.9 * dt;
+            if (leaf.position.y < 0.15) {
+              leaf.position.y = 12.5 + Math.random() * 2;
+            }
+          });
+        }
+
+        // Starry Night Twinkling Stars & Fireflies (星夜閃爍星星與螢火蟲)
+        if (this.starrySkyGroup && this.starrySkyGroup.visible) {
+          this.stars.forEach(star => {
+            const d = star.userData;
+            const pulse = 0.55 + 0.45 * Math.sin(t * d.twinkleSpeed + d.phase);
+            star.scale.setScalar(d.baseScale * (0.65 + pulse * 0.65));
+            star.material.opacity = 0.35 + pulse * 0.65;
+            star.rotation.y += 0.6 * dt;
+          });
+
+          this.fireflies.forEach(ff => {
+            const d = ff.userData;
+            ff.position.x = d.baseX + Math.sin(t * 0.9 + d.phase) * 0.7;
+            ff.position.y = d.baseY + Math.cos(t * 1.3 + d.phase) * 0.4;
+            ff.position.z = d.baseZ + Math.sin(t * 0.7 + d.phase) * 0.7;
+            ff.material.opacity = 0.3 + 0.65 * Math.abs(Math.sin(t * 2.2 + d.phase));
+          });
+        }
+
+        // Treasures Floating & Spinning
+        Object.values(this.treasureMeshes).forEach((tr, i) => {
+          if (!tr.visible) return;
+          tr.children[0].rotation.y = t * 1.8 + i;
+          tr.children[0].position.y = Math.sin(t * 2.5 + i) * 0.14;
+        });
+
+        // Animals Idle & Interaction Jump
+        Object.entries(this.animalMeshes).forEach(([id, mesh], idx) => {
+          if (this.animalJumpTimers[id] > 0) {
+            this.animalJumpTimers[id] = Math.max(0, this.animalJumpTimers[id] - dt);
+            const p = 1 - this.animalJumpTimers[id];
+            mesh.position.y = Math.abs(Math.sin(p * Math.PI * 2)) * 0.55;
+            mesh.rotation.z = Math.sin(t * 24) * 0.1;
+          } else {
+            mesh.position.y = 0;
+            mesh.rotation.z *= 0.85;
+            mesh.scale.y = 1 + Math.sin(t * 2.1 + idx) * 0.025;
+          }
+        });
+
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    /* ===========================================================
+       7. GLOBAL INTERACTIVE STATE & UI CONTROLLERS
+       =========================================================== */
+    const appState = {
+      selectedCharacterId: 'cotton',
+      careAnimalId: 'cotton',
+      selectedSeedId: 'carrot',
+      plots: [
+        { cropId: 'carrot', stage: 3 },
+        { cropId: 'sunflower', stage: 2 },
+        { cropId: null, stage: 0 },
+        { cropId: null, stage: 0 },
+        { cropId: null, stage: 0 },
+        { cropId: null, stage: 0 }
+      ],
+      harvestBasket: {},
+      decorState: {},
+      foundTreasures: {},
+      memories: JSON.parse(JSON.stringify(DIARY_MEMORIES_DATA))
+    };
+
+    DECOR_DATA.forEach(d => { appState.decorState[d.id] = d.defaultOn; });
+
+    let heroScene3D = null;
+    let charStage3D = null;
+    let exploreScene3D = null;
+
+    // Show Toast inside 3D Explore Viewport
+    function showExploreToast(icon, title, desc) {
+      const toast = document.getElementById('explore-toast');
+      document.getElementById('explore-toast-icon').textContent = icon;
+      document.getElementById('explore-toast-title').textContent = title;
+      document.getElementById('explore-toast-desc').textContent = desc;
+      toast.classList.remove('scale-95', 'opacity-80');
+      toast.classList.add('scale-100', 'opacity-100');
+    }
+
+    // Unlock a Diary Memory with Gentle Notification
+    function unlockMemory(memId) {
+      const mem = appState.memories.find(m => m.id === memId);
+      if (mem && !mem.unlocked) {
+        mem.unlocked = true;
+        soundEngine.playChime(659.25, 0.45);
+        renderDiaryUI();
+        showExploreToast('📖', `解鎖生活日記：《${mem.title}》`, mem.desc);
+      }
+    }
+
+    /* --- SECTION 02: WORLD ZONE INTERACTION --- */
+    function hoverWorldZone(zoneKey) {
+      const z = FARM_ZONES_DATA[zoneKey];
+      if (!z) return;
+      document.getElementById('map-hover-badge').textContent = `探索區域：${z.title}`;
+    }
+
+    function selectWorldZone(zoneKey) {
+      const z = FARM_ZONES_DATA[zoneKey];
+      if (!z) return;
+      soundEngine.playPluck(587.33, 0.05, 0.35);
+
+      document.getElementById('map-hover-badge').textContent = `已選擇：${z.title}`;
+      document.getElementById('zone-en-tag').textContent = z.en;
+      document.getElementById('zone-resident-tag').textContent = z.resident;
+      document.getElementById('zone-icon-box').textContent = z.icon;
+      document.getElementById('zone-icon-box').className = `w-14 h-14 rounded-2xl ${z.iconBg} flex items-center justify-center text-3xl shadow-sm`;
+      document.getElementById('zone-title').textContent = z.title;
+      document.getElementById('zone-subtitle').textContent = z.subtitle;
+      document.getElementById('zone-desc').textContent = z.desc;
+
+      const actList = document.getElementById('zone-activities');
+      actList.innerHTML = z.activities.map(act =>
+        `<li class="flex items-center gap-2"><span class="text-meadow">●</span> ${act}</li>`
+      ).join('');
+
+      document.getElementById('zone-jump-3d-btn').setAttribute('onclick', `jumpTo3DZone('${zoneKey}')`);
+
+      // Highlight active pill
+      document.querySelectorAll('.zone-pill').forEach(btn => {
+        if (btn.dataset.zoneBtn === zoneKey) {
+          btn.className = 'zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-meadow text-ink border border-ink/15 transition-all';
+        } else {
+          btn.className = 'zone-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-cream text-ink border border-wood/30 hover:bg-sprout/60 transition-all';
+        }
+      });
+    }
+
+    function jumpTo3DZone(zoneKey) {
+      const target = document.getElementById('explore');
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        focusExploreZone(zoneKey);
+      }, 450);
+    }
+
+    /* --- SECTION 03: CHARACTERS SHOWCASE --- */
+    function renderCharacterCards() {
+      const container = document.getElementById('character-cards-list');
+      container.innerHTML = ANIMALS_DATA.map(a => {
+        const active = a.id === appState.selectedCharacterId;
+        return `
+          <button type="button" onclick="selectCharacter('${a.id}')"
+            class="btn-toy text-left w-full p-3.5 sm:p-4 rounded-2xl border-2 transition-all flex items-center justify-between gap-3 ${
+              active
+                ? 'bg-creamLight border-meadow shadow-toy'
+                : 'bg-creamLight/75 border-wood/25 hover:bg-creamLight hover:border-wood/50'
+            }">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm" style="background-color: ${a.colorHex}; border: 1.5px solid rgba(107,82,62,0.2);">
+                ${a.emoji}
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-display font-bold text-xs text-woodDark">${a.number}</span>
+                  <span class="font-bold text-sm sm:text-base text-ink">${a.name}</span>
+                </div>
+                <span class="text-xs text-inkLight block mt-0.5">${a.species} · ${a.personality.split('、')[0]}</span>
+              </div>
+            </div>
+            <span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${active ? 'bg-meadow text-ink' : 'bg-cream text-inkLight'}">
+              →
+            </span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCharacter(id) {
+      const animal = ANIMALS_DATA.find(a => a.id === id);
+      if (!animal) return;
+      appState.selectedCharacterId = id;
+      soundEngine.playAnimalVoice(id);
+
+      const panel = document.getElementById('char-detail-panel');
+      panel.style.opacity = '0.35';
+
+      setTimeout(() => {
+        const idx = ANIMALS_DATA.findIndex(a => a.id === id) + 1;
+        document.getElementById('char-number-badge').textContent = `0${idx} / 05`;
+        document.getElementById('char-name').textContent = animal.name;
+        document.getElementById('char-species').textContent = animal.species;
+        document.getElementById('char-role').textContent = animal.role;
+        document.getElementById('char-personality').textContent = animal.personality;
+        document.getElementById('char-likes').textContent = animal.likes;
+        document.getElementById('char-story').textContent = animal.story;
+        document.getElementById('char-dialogue-text').textContent = animal.dialogues[0];
+
+        document.getElementById('char-interactions-tags').innerHTML = animal.interactions.map(tag =>
+          `<span class="px-3 py-1 rounded-full bg-sprout/65 text-ink text-xs font-medium">${tag}</span>`
+        ).join('');
+
+        panel.style.opacity = '1';
+      }, 140);
+
+      renderCharacterCards();
+      if (charStage3D) charStage3D.setAnimal(id);
+    }
+
+    function triggerCharacterStageInteraction() {
+      const animal = ANIMALS_DATA.find(a => a.id === appState.selectedCharacterId);
+      if (!animal) return;
+      soundEngine.playAnimalVoice(animal.id);
+      if (charStage3D) charStage3D.triggerHappyBounce();
+
+      const bubble = document.getElementById('char-speech-bubble');
+      bubble.classList.remove('animate-hop');
+      void bubble.offsetWidth;
+      bubble.classList.add('animate-hop');
+
+      const randomLine = animal.dialogues[Math.floor(Math.random() * animal.dialogues.length)];
+      document.getElementById('char-dialogue-text').textContent = randomLine;
+    }
+
+    function goCareThisAnimal() {
+      selectCareAnimal(appState.selectedCharacterId);
+      switchExploreTab('care');
+      document.getElementById('explore').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* --- SECTION 04: SIX-ACT STORYTELLING --- */
+    const STORY_MOODS = [
+      { act: 'ACT 01 / 06', mood: '清晨薄霧 · 初次相遇', skyTop: '#B9DCEB', skyBot: '#FAF5E8', sunY: 95, sunColor: '#FFF6D6', gardenOp: '0.2', animalOp: '0.15' },
+      { act: 'ACT 02 / 06', mood: '晨光微亮 · 靜謐木屋', skyTop: '#A9D3E6', skyBot: '#F4E9D1', sunY: 80, sunColor: '#FFE699', gardenOp: '0.35', animalOp: '0.3' },
+      { act: 'ACT 03 / 06', mood: '和煦微風 · 夥伴登場', skyTop: '#9DC7D8', skyBot: '#E8F2DA', sunY: 68, sunColor: '#FFE699', gardenOp: '0.5', animalOp: '1' },
+      { act: 'ACT 04 / 06', mood: '晴朗正午 · 一起耕作', skyTop: '#8FC2D6', skyBot: '#D5E5BD', sunY: 58, sunColor: '#FFD966', gardenOp: '1', animalOp: '1' },
+      { act: 'ACT 05 / 06', mood: '午後綠意 · 自由探索', skyTop: '#9DC7D8', skyBot: '#D5E5BD', sunY: 65, sunColor: '#FFE699', gardenOp: '1', animalOp: '1' },
+      { act: 'ACT 06 / 06', mood: '蜜桃夕陽 · 新的日常', skyTop: '#E5987E', skyBot: '#F9D8B4', sunY: 125, sunColor: '#FFB84D', gardenOp: '1', animalOp: '1' }
+    ];
+
+    function activateStoryAct(actIndex) {
+      const m = STORY_MOODS[actIndex] || STORY_MOODS[0];
+      document.getElementById('story-act-indicator').textContent = m.act;
+      document.getElementById('story-mood-label').textContent = m.mood;
+      document.getElementById('skyStopTop').setAttribute('stop-color', m.skyTop);
+      document.getElementById('skyStopBottom').setAttribute('stop-color', m.skyBot);
+      const sun = document.getElementById('story-sun');
+      sun.setAttribute('cy', m.sunY);
+      sun.setAttribute('fill', m.sunColor);
+      document.getElementById('story-garden-layer').setAttribute('opacity', m.gardenOp);
+      document.getElementById('story-animals-layer').setAttribute('opacity', m.animalOp);
+
+      document.querySelectorAll('.story-dot').forEach((dot, idx) => {
+        dot.className = idx === actIndex
+          ? 'story-dot flex-1 h-2.5 rounded-full bg-meadow transition-all'
+          : 'story-dot flex-1 h-2 rounded-full bg-wood/30 transition-all';
+      });
+
+      document.querySelectorAll('.story-act-card').forEach((card, idx) => {
+        if (idx === actIndex) {
+          card.classList.remove('bg-creamLight/80', 'border-wood/30', 'shadow-soft');
+          card.classList.add('bg-creamLight', 'border-2', 'border-meadow', 'shadow-toy');
+        } else {
+          card.classList.add('bg-creamLight/80', 'border-wood/30', 'shadow-soft');
+          card.classList.remove('bg-creamLight', 'border-2', 'border-meadow', 'shadow-toy');
+        }
+      });
+    }
+
+    /* --- SECTION 05: EXPLORE 3D & FARM WORKBENCH --- */
+    function handle3DObjectClick(userData) {
+      if (!userData) return;
+      if (userData.type === 'animal') {
+        const animal = ANIMALS_DATA.find(a => a.id === userData.id);
+        if (!animal) return;
+        soundEngine.playAnimalVoice(animal.id);
+        if (exploreScene3D) exploreScene3D.bounceAnimal(animal.id);
+        selectCareAnimal(animal.id);
+        switchExploreTab('care');
+        const line = animal.dialogues[Math.floor(Math.random() * animal.dialogues.length)];
+        showExploreToast(animal.emoji, `${animal.name}（${animal.species}）`, line);
+      } else if (userData.type === 'zone') {
+        const z = FARM_ZONES_DATA[userData.id];
+        if (!z) return;
+        soundEngine.playPluck(523.25, 0.05, 0.35);
+        focusExploreZone(z.id);
+        showExploreToast(z.icon, `${z.title} · ${z.subtitle}`, z.desc);
+        if (z.id === 'garden') switchExploreTab('garden');
+      } else if (userData.type === 'treasure') {
+        const tr = TREASURES_DATA.find(t => t.id === userData.id);
+        if (!tr) return;
+        appState.foundTreasures[tr.id] = true;
+        if (exploreScene3D && exploreScene3D.treasureMeshes[tr.id]) {
+          exploreScene3D.treasureMeshes[tr.id].visible = false;
+        }
+        soundEngine.playChime(783.99, 0.45);
+        renderDiaryUI();
+        unlockMemory('mem_tangy');
+        showExploreToast(tr.emoji, `發現隱藏自然小物：${tr.name}！`, `已收錄至雲丘生活日記圖鑑（地點：${tr.zone}）。`);
+      }
+    }
+
+    function focusExploreZone(zoneKey) {
+      if (exploreScene3D) exploreScene3D.focusZone(zoneKey);
+      const z = FARM_ZONES_DATA[zoneKey];
+      if (z) {
+        showExploreToast(z.icon, `${z.title}（${z.en}）`, z.subtitle);
+      }
+    }
+
+    function resetExploreCamera() {
+      soundEngine.playPluck(523.25, 0.04, 0.25);
+      if (exploreScene3D) exploreScene3D.focusZone('overview');
+    }
+
+    function zoomExploreCamera(delta) {
+      if (!exploreScene3D) return;
+      exploreScene3D.desiredRadius = Math.max(10, Math.min(32, exploreScene3D.desiredRadius + delta));
+    }
+
+    function setFarmSeason(season) {
+      soundEngine.playPluck(659.25, 0.05, 0.35);
+      if (exploreScene3D) exploreScene3D.setSeason(season);
+      document.querySelectorAll('.season-btn').forEach(btn => {
+        if (btn.dataset.season === season) {
+          btn.className = 'season-btn px-3 py-1.5 rounded-full text-xs font-bold bg-meadow text-ink shadow-sm transition-all';
+        } else {
+          btn.className = 'season-btn px-3 py-1.5 rounded-full text-xs font-bold bg-cream text-ink hover:bg-sprout/60 transition-all';
+        }
+      });
+
+      const seasonFeedback = {
+        spring: ['🌸', '季節切換：春櫻微風', '粉嫩櫻花樹盛開，花瓣正隨著春風輕輕飄落在雲丘草地上。'],
+        summer: ['☀️', '季節切換：盛夏晴空', '陽光灑滿翠綠樹冠，微風吹過湖畔帶來清涼的夏日氣息。'],
+        autumn: ['🍂', '季節切換：秋夕暖陽', '樹木換上金黃與暖橘新裝，秋葉緩緩飄落，小木屋也亮起了暖光。'],
+        twilight: ['✨', '季節切換：星夜物語', '深藍夜幕降臨，滿天星星在雲丘上空閃爍，湖畔還飛舞著點點螢火蟲。']
+      };
+      const fb = seasonFeedback[season];
+      if (fb) showExploreToast(fb[0], fb[1], fb[2]);
+    }
+
+    function switchExploreTab(tabId) {
+      document.querySelectorAll('.explore-tab-btn').forEach(btn => {
+        if (btn.dataset.tabBtn === tabId) {
+          btn.className = 'explore-tab-btn py-2.5 px-2 rounded-2xl text-xs font-bold bg-meadow text-ink shadow-sm transition-all flex flex-col sm:flex-row items-center justify-center gap-1';
+        } else {
+          btn.className = 'explore-tab-btn py-2.5 px-2 rounded-2xl text-xs font-bold text-inkLight hover:bg-sprout/50 transition-all flex flex-col sm:flex-row items-center justify-center gap-1';
+        }
+      });
+
+      document.querySelectorAll('.explore-tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      const activePanel = document.getElementById(`tab-panel-${tabId}`);
+      if (activePanel) activePanel.classList.remove('hidden');
+    }
+
+    // TAB 1: Animal Care Logic
+    function renderCareAnimalSelector() {
+      const container = document.getElementById('care-animal-selector');
+      container.innerHTML = ANIMALS_DATA.map(a => {
+        const active = a.id === appState.careAnimalId;
+        return `
+          <button type="button" onclick="selectCareAnimal('${a.id}')"
+            class="btn-toy py-2 px-1 rounded-2xl border text-center transition-all ${
+              active ? 'bg-meadow border-ink/20 font-bold text-ink shadow-sm' : 'bg-cream border-wood/25 text-inkLight hover:bg-sprout/50'
+            }">
+            <span class="text-lg block">${a.emoji}</span>
+            <span class="text-[11px] block mt-0.5">${a.shortName}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCareAnimal(id) {
+      appState.careAnimalId = id;
+      const a = ANIMALS_DATA.find(item => item.id === id);
+      if (!a) return;
+      renderCareAnimalSelector();
+      document.getElementById('care-animal-avatar').textContent = a.emoji;
+      document.getElementById('care-animal-name').textContent = `${a.name}（${a.species}）`;
+      document.getElementById('care-animal-mood').textContent = `性格：${a.personality}`;
+      document.getElementById('care-feed-label').textContent = a.feedItem;
+    }
+
+    function performAnimalCare(actionType) {
+      const a = ANIMALS_DATA.find(item => item.id === appState.careAnimalId);
+      if (!a) return;
+
+      soundEngine.playAnimalVoice(a.id);
+      if (exploreScene3D) exploreScene3D.bounceAnimal(a.id);
+
+      const responseText = a.careResponses[actionType] || a.careResponses.pet;
+      const randomDialogue = a.dialogues[Math.floor(Math.random() * a.dialogues.length)];
+
+      document.getElementById('care-feedback-box').innerHTML = `
+        <p class="font-bold text-ink">💛 ${responseText}</p>
+        <p class="text-xs text-woodDark mt-1">${a.shortName}：${randomDialogue}</p>
+      `;
+
+      showExploreToast(a.emoji, responseText, `${a.shortName}：${randomDialogue}`);
+
+      if (a.memoryId) {
+        unlockMemory(a.memoryId);
+      }
+    }
+
+    // TAB 2: Farm Gardening Logic
+    function renderGardeningUI() {
+      const seedGrid = document.getElementById('seed-selector-grid');
+      seedGrid.innerHTML = CROPS_DATA.map(c => {
+        const active = c.id === appState.selectedSeedId;
+        return `
+          <button type="button" onclick="selectSeed('${c.id}')"
+            class="btn-toy py-2 px-1 rounded-2xl border text-center transition-all ${
+              active ? 'bg-meadow border-ink/20 font-bold text-ink shadow-sm' : 'bg-cream border-wood/25 text-inkLight hover:bg-sprout/50'
+            }">
+            <span class="text-lg block">${c.emoji}</span>
+            <span class="text-[11px] block mt-0.5">${c.name}</span>
+          </button>
+        `;
+      }).join('');
+
+      const plotsGrid = document.getElementById('garden-plots-grid');
+      plotsGrid.innerHTML = appState.plots.map((p, idx) => {
+        const crop = CROPS_DATA.find(c => c.id === p.cropId);
+        let stageIcon = '🟫';
+        let stageLabel = '點擊播種';
+        let cardStyle = 'bg-cream border-wood/30 hover:bg-sprout/40';
+
+        if (p.stage === 1 && crop) {
+          stageIcon = '🌱';
+          stageLabel = `${crop.name}種子 · 點擊澆水`;
+          cardStyle = 'bg-softOrange/35 border-wood/40';
+        } else if (p.stage === 2 && crop) {
+          stageIcon = '🌿';
+          stageLabel = `${crop.name}成長中 · 再澆水`;
+          cardStyle = 'bg-sprout/60 border-meadow';
+        } else if (p.stage === 3 && crop) {
+          stageIcon = crop.emoji;
+          stageLabel = `${crop.name}成熟 · 點擊採收！`;
+          cardStyle = 'bg-meadow/75 border-forest shadow-sm';
+        }
+
+        return `
+          <button type="button" onclick="interactGardenPlot(${idx})"
+            class="btn-toy p-3 rounded-2xl border-2 text-center transition-all flex flex-col items-center justify-center min-h-[96px] ${cardStyle}">
+            <span class="text-2xl mb-1">${stageIcon}</span>
+            <span class="text-[11px] font-bold text-ink leading-tight">${stageLabel}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Sync 3D Garden Plots
+      if (exploreScene3D) {
+        appState.plots.forEach((p, idx) => exploreScene3D.updateGardenPlot(idx, p));
+      }
+
+      // Render Harvest Basket
+      const basketEl = document.getElementById('harvest-basket-pills');
+      const entries = Object.entries(appState.harvestBasket);
+      if (entries.length === 0) {
+        basketEl.innerHTML = `<span class="text-inkLight font-normal">尚未採收，快試著種一株吧！</span>`;
+      } else {
+        basketEl.innerHTML = entries.map(([cropId, count]) => {
+          const c = CROPS_DATA.find(item => item.id === cropId);
+          return `<span class="px-2.5 py-1 rounded-full bg-creamLight border border-wood/30">${c.emoji} ${c.name} ×${count}</span>`;
+        }).join('');
+      }
+    }
+
+    function selectSeed(seedId) {
+      appState.selectedSeedId = seedId;
+      soundEngine.playPluck(587.33, 0.04, 0.25);
+      renderGardeningUI();
+    }
+
+    function interactGardenPlot(index) {
+      const plot = appState.plots[index];
+      if (!plot) return;
+
+      if (plot.stage === 0) {
+        plot.cropId = appState.selectedSeedId;
+        plot.stage = 1;
+        const crop = CROPS_DATA.find(c => c.id === plot.cropId);
+        soundEngine.playPluck(523.25, 0.05, 0.3);
+        showExploreToast('🌱', `播下了${crop.name}種子！`, '再點擊一次農地為它澆澆水吧。');
+      } else if (plot.stage === 1 || plot.stage === 2) {
+        plot.stage += 1;
+        const crop = CROPS_DATA.find(c => c.id === plot.cropId);
+        soundEngine.playPluck(659.25, 0.05, 0.35);
+        if (plot.stage === 3) {
+          showExploreToast(crop.emoji, `${crop.name}成熟囉！`, '點擊農地即可收進你的農場收成籃。');
+        } else {
+          showExploreToast('💧', `幫${crop.name}澆了水`, '嫩芽在陽光下又長高了一點！');
+        }
+      } else if (plot.stage === 3) {
+        const crop = CROPS_DATA.find(c => c.id === plot.cropId);
+        appState.harvestBasket[crop.id] = (appState.harvestBasket[crop.id] || 0) + 1;
+        plot.cropId = null;
+        plot.stage = 0;
+        soundEngine.playChime(783.99, 0.4);
+        showExploreToast('🧺', `開心採收了${crop.name}！`, '已放入收成籃，農地也準備好迎接下一顆種子囉。');
+        unlockMemory('mem_harvest');
+      }
+
+      renderGardeningUI();
+    }
+
+    function waterAllPlots() {
+      let watered = false;
+      appState.plots.forEach(p => {
+        if (p.stage === 1 || p.stage === 2) {
+          p.stage += 1;
+          watered = true;
+        }
+      });
+      if (watered) {
+        soundEngine.playChime(659.25, 0.35);
+        showExploreToast('💧', '幫菜園裡的作物都澆過水了！', '每一株嫩芽都喝飽了清涼的溪水。');
+        renderGardeningUI();
+      } else {
+        showExploreToast('🌱', '目前沒有需要澆水的嫩芽', '先選一顆喜歡的種子播種在空地上吧！');
+      }
+    }
+
+    // TAB 3: Farm Decoration Logic
+    function renderDecorUI() {
+      const grid = document.getElementById('decor-items-grid');
+      grid.innerHTML = DECOR_DATA.map(d => {
+        const isOn = !!appState.decorState[d.id];
+        return `
+          <button type="button" onclick="toggleDecorItem('${d.id}')"
+            class="btn-toy p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between ${
+              isOn ? 'bg-sprout/65 border-meadow shadow-sm' : 'bg-cream border-wood/25 opacity-80 hover:opacity-100'
+            }">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-2xl">${d.emoji}</span>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isOn ? 'bg-meadow text-ink' : 'bg-creamLight text-inkLight'}">
+                ${isOn ? '已擺放' : '未擺放'}
+              </span>
+            </div>
+            <div class="mt-2">
+              <h4 class="font-bold text-xs sm:text-sm text-ink">${d.name}</h4>
+              <p class="text-[11px] text-inkLight mt-0.5 leading-snug">${d.desc}</p>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function toggleDecorItem(id) {
+      appState.decorState[id] = !appState.decorState[id];
+      const isOn = appState.decorState[id];
+      const item = DECOR_DATA.find(d => d.id === id);
+
+      if (exploreScene3D) exploreScene3D.setDecorVisibility(id, isOn);
+      soundEngine.playPluck(isOn ? 659.25 : 440, 0.05, 0.3);
+      renderDecorUI();
+      showExploreToast(item.emoji, `${isOn ? '已擺放' : '已收起'}：${item.name}`, item.desc);
+      if (isOn) unlockMemory('mem_decor');
+    }
+
+    // TAB 4: Farm Diary & Treasures Logic
+    function renderDiaryUI() {
+      const unlockedCount = appState.memories.filter(m => m.unlocked).length;
+      const totalCount = appState.memories.length;
+      document.getElementById('diary-progress-badge').textContent = `${unlockedCount} / ${totalCount}`;
+      document.getElementById('nav-diary-count').textContent = `${unlockedCount}/${totalCount}`;
+
+      // Treasures
+      const trGrid = document.getElementById('treasures-grid');
+      trGrid.innerHTML = TREASURES_DATA.map(t => {
+        const found = !!appState.foundTreasures[t.id];
+        return `
+          <div class="p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+            found ? 'bg-sprout/70 border-meadow text-ink font-bold' : 'bg-creamLight/80 border-wood/25 text-inkLight'
+          }">
+            <span class="text-lg">${found ? t.emoji : '❓'}</span>
+            <div>
+              <div class="leading-tight">${found ? t.name : '未發現小物'}</div>
+              <div class="text-[10px] font-normal">${found ? t.zone : t.hint}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Memories List
+      const memList = document.getElementById('diary-memories-list');
+      memList.innerHTML = appState.memories.map(m => {
+        return `
+          <div class="p-3.5 rounded-2xl border transition-all ${
+            m.unlocked ? 'bg-cream border-wood/30' : 'bg-cream/50 border-wood/15 opacity-70'
+          }">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">${m.unlocked ? m.emoji : '🔒'}</span>
+                <h4 class="font-bold text-xs sm:text-sm text-ink">${m.unlocked ? m.title : '尚未解鎖的農場回憶'}</h4>
+              </div>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-creamLight text-woodDark font-medium">
+                ${m.animal}
+              </span>
+            </div>
+            <p class="text-xs text-inkLight mt-1.5 leading-relaxed">
+              ${m.unlocked ? m.desc : '試著在 3D 農場中與對應的動物互動、種植作物或佈置庭院來解鎖這篇故事！'}
+            </p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* ===========================================================
+       8. INITIALIZATION & SCROLL / INTERSECTION OBSERVERS
+       =========================================================== */
+    window.onload = function () {
+      // Initialize 3D Scenes
+      const heroCanvas = document.getElementById('hero-3d-canvas');
+      if (heroCanvas && window.THREE) {
+        heroScene3D = new HeroFarmScene(heroCanvas);
+      }
+
+      const charCanvas = document.getElementById('char-3d-canvas');
+      if (charCanvas && window.THREE) {
+        charStage3D = new CharacterStage3D(charCanvas);
+      }
+
+      const exploreCanvas = document.getElementById('explore-3d-canvas');
+      if (exploreCanvas && window.THREE) {
+        exploreScene3D = new ExploreFarm3D(exploreCanvas);
+      }
+
+      // Observe container size changes so 3D canvases always render crisply
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => {
+          if (heroScene3D) heroScene3D.onResize();
+          if (charStage3D) charStage3D.onResize();
+          if (exploreScene3D) exploreScene3D.onResize();
+        });
+        ['hero-canvas-container', 'char-stage-container', 'explore-canvas-wrapper'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) ro.observe(el);
+        });
+      }
+
+      // Render Initial UI Components
+      selectWorldZone('cabin');
+      renderCharacterCards();
+      selectCharacter('cotton');
+      renderCareAnimalSelector();
+      selectCareAnimal('cotton');
+      renderGardeningUI();
+      renderDecorUI();
+      renderDiaryUI();
+
+      // Navbar Sound & Mobile Menu & Scroll-to-Top Listeners
+      document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+        const isOn = soundEngine.toggle();
+        document.getElementById('sound-icon').textContent = isOn ? '🔊' : '🔇';
+        document.getElementById('sound-label').textContent = isOn ? '音效：開' : '音效：關';
+      });
+
+      document.getElementById('scroll-top-btn').addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+      });
+
+      // Scroll Reveal Observer
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll('.reveal-item').forEach(el => revealObserver.observe(el));
+
+      // Story 6-Act Scroll Trigger Observer
+      const storyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const actIdx = parseInt(entry.target.dataset.act, 10);
+            if (!isNaN(actIdx)) activateStoryAct(actIdx);
+          }
+        });
+      }, { rootMargin: '-30% 0px -45% 0px', threshold: 0.1 });
+      document.querySelectorAll('.story-act-card').forEach(card => storyObserver.observe(card));
+
+      // Pause Offscreen 3D Render Loops for Smooth Performance
+      const heroSection = document.getElementById('home');
+      const exploreSection = document.getElementById('explore');
+      const perfObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.target === heroSection && heroScene3D) {
+            heroScene3D.isVisible = entry.isIntersecting;
+            if (entry.isIntersecting) heroScene3D.onResize();
+          }
+          if (entry.target === exploreSection && exploreScene3D) {
+            exploreScene3D.isVisible = entry.isIntersecting;
+            if (entry.isIntersecting) exploreScene3D.onResize();
+          }
+        });
+      }, { threshold: 0.05 });
+      if (heroSection) perfObserver.observe(heroSection);
+      if (exploreSection) perfObserver.observe(exploreSection);
+    };
+  </script>
+</body>
+</html>
